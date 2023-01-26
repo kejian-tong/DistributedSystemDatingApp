@@ -1,9 +1,13 @@
 import com.google.gson.JsonObject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class ServletsUtil {
 
-  public static void writeJsonObject(HttpServletResponse res, String resBody, JsonObject jsonObject) {
+  public static void writeJsonObject(
+      HttpServletResponse res, String resBody, JsonObject jsonObject) {
     try {
       jsonObject.addProperty("message", resBody);
       res.setContentType("application/json");
@@ -13,15 +17,13 @@ public class ServletsUtil {
     }
   }
 
-
-
-  public static boolean isValidNumber(String id) {
-    if (id == null || id.isEmpty()) return false;
-    try {
-      int digits = Integer.parseInt(id);
-    } catch (NumberFormatException e) {
-      return false;
+  public static String getJsonBodyString(HttpServletRequest req) throws IOException {
+    StringBuilder buffer = new StringBuilder();
+    BufferedReader reader = req.getReader();
+    String line;
+    while ((line = reader.readLine()) != null) {
+      buffer.append(line);
     }
-    return true;
+    return buffer.toString();
   }
 }

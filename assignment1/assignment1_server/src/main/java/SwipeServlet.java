@@ -1,116 +1,115 @@
-import java.io.BufferedReader;
-import javax.servlet.*;
 import javax.servlet.http.*;
+import com.google.gson.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
-import com.google.gson.*;
 
 @WebServlet(name = "SwipeServlet", value = "/SwipeServlet")
 public class SwipeServlet extends HttpServlet {
+  private ServletsUtil servletsUtil = new ServletsUtil();
 
-    protected void processRequest(HttpServletRequest req, HttpServletResponse res)
-        throws ServletException, IOException {
-        res.setContentType("application/json");
-        Gson gson = new Gson();
 
-        try {
-            StringBuilder sb = new StringBuilder();
-            String s;
-            while ((s = req.getReader().readLine()) != null) {
-                sb.append(s);
-            }
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    processHttpMethod(req, res, HttpMethod.POST);
+  }
 
-            RequestBody requestBody = (RequestBody) gson.fromJson(sb.toString(), RequestBody.class);
+  private void processHttpMethod(HttpServletRequest req, HttpServletResponse res, HttpMethod method)
+      throws IOException {
+    res.setContentType("text/plain");
+    String urlPath = req.getPathInfo();
 
-            RequestBody reqBody = new RequestBody();
-            if (isJsonBodyValid(sb.toString(), res)) {
-                reqBody.setSwiper(1);
-            } else {
-
-            }
-            res.getOutputStream().print(gson.toJson(requestBody));
-            res.getOutputStream().flush();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    if (urlPath == null || urlPath.isEmpty()) {
+      res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      res.getWriter().write("Missing Parameter");
+      return;
     }
 
-        @Override
-        protected void doPost(HttpServletRequest req, HttpServletResponse res)
-            throws ServletException, IOException {
-            res.setContentType("text/plain");
+    String[] urlParts = urlPath.split("/");
 
-            // post portion
-            BufferedReader bufferedReaderBody = req.getReader();
-            StringBuilder jsonBodyBuilder = new StringBuilder();
+    //check if the url is valid and json body is valid
+    String jsonBodyString = servletsUtil.getJsonBodyString(req);
+    if (!isValidUrl(urlParts) || !isJsonBodyValid(jsonBodyString, res)) {
+      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//      res.getWriter().write(urlPath);
+      res.getWriter().write("Invalid url or json body");
+      return;
+    }
 
-            String line;
-            while((line = bufferedReaderBody.readLine()) != null) {
-                jsonBodyBuilder.append(line);
-            }
-            String jsonBodyString = jsonBodyBuilder.toString();
+    if (method == HttpMethod.POST) {
+      res.setStatus(HttpServletResponse.SC_CREATED);
+      JsonObject jsonBody = new JsonParser().parse(jsonBodyString).getAsJsonObject();
+      int swiper = jsonBody.get("swiper").getAsInt();
+      int swipee = jsonBody.get("swipee").getAsInt();
+      String comment = jsonBody.get("comment").getAsString();
+      String resBody = "Write successful";
 
-            // End of post portion
-            String urlPath = req.getPathInfo();
-            // check we have a URL!
-            if (urlPath == null || urlPath.isEmpty()) {
-                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                res.getWriter().write("missing parameters");
-                return;
-            }
+      JsonObject jsonObject = new JsonObject();
+      servletsUtil.writeJsonObject(res, resBody, jsonObject);
+    }
+  }
 
-            String[] urlParts = urlPath.split("/");
+  private boolean isValidUrl(String[] urlParts) {
+    if (urlParts[1].equals("left") || urlParts[1].equals("right") ) {
+      return true;
+    }
+    return false;
+  }
 
-            if (!isUrlValid(urlParts)) {
-                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            } else {
-                res.setStatus(HttpServletResponse.SC_OK);
-                res.getWriter().write(jsonBodyString);
-            }
-        }
+  private boolean isJsonBodyValid(String jsonBodyString, HttpServletResponse res)
+      throws IOException {
+    try {
+      JsonObject jsonBody = new JsonParser().parse(jsonBodyString).getAsJsonObject();
+      // check if swiper is a number between 1 and 5000
+      String swipers = jsonBody.get("swiper").getAsString();
 
-
-        private boolean isUrlValid(String[] urlPath) {
-        if (urlPath[1].equals("left") || urlPath[1].equals("right")) {
-            return true;
-        }
+      if(!isValidNumber(swipers)) {
+        res.getWriter().write("Not valid number\n");
         return false;
+      }
+      int swiper = Integer.parseInt(swipers);
+      if (swiper < 1 || swiper > 5000) {
+        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        res.getWriter().write("Invalid swiper value. Must be a number between 1 and 5000.");
+        return false;
+      }
+
+      // check if swipee is a number between 1 and 1000000
+      String swipees = jsonBody.get("swipee").getAsString();
+      if(!isValidNumber(swipees)) {
+        res.getWriter().write("Not a valid number\n");
+        return false;
+      }
+      int swipee = Integer.parseInt(swipees);
+      if (swipee < 1 || swipee > 1000000) {
+        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        res.getWriter().write("Invalid swipee value. Must be a number between 1 and 1000000.");
+        return false;
+      }
+
+      // check if comment is a string of 256 characters or less
+      String comment = jsonBody.get("comment").getAsString();
+      if (comment.length() > 256) {
+        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        res.getWriter().write("Invalid comment value. Must be a string of 256 characters or less.");
+        return false;
+      }
+
+    } catch (JsonSyntaxException e) {
+      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      res.getWriter().write("Error parsing json body.");
+      return false;
     }
+    return true;
+  }
 
-    private boolean isJsonBodyValid(String jsonBodyString, HttpServletResponse res)
-        throws IOException {
-        try {
-            JsonObject jsonBody = new JsonParser().parse(jsonBodyString).getAsJsonObject();
-            // check if swiper is a number between 1 and 5000
-            int swiper = jsonBody.get("swiper").getAsInt();
-            if (swiper < 1 || swiper > 5000) {
-                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                res.getWriter().write("Invalid swiper value. Must be a number between 1 and 5000.");
-                return false;
-            }
-
-            // check if swipee is a number between 1 and 1000000
-            int swipee = jsonBody.get("swipee").getAsInt();
-            if (swipee < 1 || swipee > 1000000) {
-                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                res.getWriter().write("Invalid swipee value. Must be a number between 1 and 1000000.");
-                return false;
-            }
-
-            // check if comment is a string of 256 characters or less
-            String comment = jsonBody.get("comment").getAsString();
-            if (comment.length() > 256) {
-                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                res.getWriter().write("Invalid comment value. Must be a string of 256 characters or less.");
-                return false;
-            }
-
-        } catch (JsonSyntaxException e) {
-            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            res.getWriter().write("Error parsing json body.");
-            return false;
-        }
-        return true;
+  private boolean isValidNumber(String s) {
+    if (s == null || s.isEmpty()) return false;
+    try {
+      int digits = Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      return false;
     }
+    return true;
+  }
+
 }
-
