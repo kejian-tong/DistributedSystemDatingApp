@@ -54,20 +54,26 @@ public class SwipeServlet extends HttpServlet {
       } else if (!validSwipee(swipeDetails.getSwipee())) {
         responseMsg.setMessage("User not found: invalid swipee id");
         res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      } else if (!validComment(swipeDetails.getComment())){
+      } else if (!validComment(swipeDetails.getComment())) {
         responseMsg.setMessage("Invalid comments: comments can not exceed 256 characters");
         res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      } else if (method == HttpMethod.POST){
+//      } else if (method == HttpMethod.POST){
+      } else {
         responseMsg.setMessage("Write successful");
         res.setStatus(HttpServletResponse.SC_CREATED);
       }
+//      res.getOutputStream().print(gson.toJson(responseMsg));
+      res.getWriter().write(gson.toJson(responseMsg));
+//      res.getOutputStream().flush();
+
     } catch (Exception e) {
       e.printStackTrace();
       responseMsg.setMessage(e.getMessage());
-    } finally {
-      res.getOutputStream().print(gson.toJson(responseMsg));
-      res.getOutputStream().flush();
     }
+//    finally {
+//      res.getOutputStream().print(gson.toJson(responseMsg));
+//      res.getOutputStream().flush();
+//    }
   }
 
   private boolean isValidUrl(String[] urlParts) {
