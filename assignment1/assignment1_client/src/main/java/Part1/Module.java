@@ -12,7 +12,6 @@ public class Module {
   public static final String[] comments = {LIKE, DISLIKE};
   public static final int MAX_RE_TRY = 5;
 
-
 }
 
 
