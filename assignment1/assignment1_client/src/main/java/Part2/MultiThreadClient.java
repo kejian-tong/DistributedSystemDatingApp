@@ -37,14 +37,11 @@ public class MultiThreadClient {
       numOfFailReq.addAndGet(singleThreadClients[i].getGetNumOfFailReq());
     }
 
-//    long end = System.currentTimeMillis();
-//    long walltime = (end - start) / 1000;
-//    int numOfRequests = numOfSuccessReq.get() + numOfFailReq.get();
-//    long throughput = (numOfRequests) / walltime;
-
-//    System.out.println("Number of successful requests: " + numOfSuccessReq);
-//    System.out.println("Total throughput: " + throughput + " req/s");
-
+    long end = System.currentTimeMillis();
+    long walltime = (end - start) / 1000;
+    int numOfRequests = numOfSuccessReq.get() + numOfFailReq.get();
+    long throughput = numOfRequests / walltime;
+    System.out.println("Total throughput: " + throughput + " req/s");
 
     LatencyRecord[] latencyRecords = records.toArray(new LatencyRecord[records.size()]);
 
@@ -73,6 +70,26 @@ public class MultiThreadClient {
 
     FileWriter fileWriter = new FileWriter(records);
     fileWriter.run();
+
+    // get the data for plot Performance for task 4
+//    Map<Long, Integer> requestsPerSecond = new HashMap<>();
+//    String performanceResults = "performanceResults.csv";
+//    java.io.FileWriter writer = new java.io.FileWriter(performanceResults);
+//    writer.write("Second, Number of Requests\n");
+//
+//    try (BufferedReader br = new BufferedReader(new FileReader(Arrays.toString(latencyRecords)))) {
+//      String line;
+//      while ((line = br.readLine()) != null) {
+//        String[] fields = line.split(",");
+//        long startTime = Long.parseLong(fields[0]) / 1000; // convert to seconds
+//        int count = requestsPerSecond.getOrDefault(startTime, 0);
+//        requestsPerSecond.put(startTime, count + 1);
+//      }
+//    }
+//
+//    for(Map.Entry<Long, Integer> entry: requestsPerSecond.entrySet()) {
+//      writer.write(entry.getKey() + "," + entry.getValue() + "\n");
+//    }
 
   }
 }

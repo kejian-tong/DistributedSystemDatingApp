@@ -7,9 +7,8 @@ import io.swagger.client.model.SwipeDetails;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+
 
 public class SingleThreadClient implements Runnable {
   private int numOfSuccessReq = 0;

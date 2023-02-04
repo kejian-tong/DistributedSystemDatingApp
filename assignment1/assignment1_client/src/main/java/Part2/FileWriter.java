@@ -1,6 +1,7 @@
 package Part2;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 
@@ -12,8 +13,9 @@ public class FileWriter {
   }
 
   public void run() throws IOException {
+    String resultFile = "results.csv";
 
-    java.io.FileWriter writer = new java.io.FileWriter("results.csv");
+    java.io.FileWriter writer = new java.io.FileWriter(resultFile);
 
     writer.write("StartTime,RequestTye,Latency,ResponseCode\n");
     for(LatencyRecord record: latencyRecords) {
