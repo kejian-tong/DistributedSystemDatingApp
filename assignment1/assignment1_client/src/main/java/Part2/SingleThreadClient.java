@@ -1,54 +1,79 @@
 package Part2;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.swagger.client.ApiClient;
+import io.swagger.client.ApiException;
+import io.swagger.client.api.SwipeApi;
+import io.swagger.client.model.SwipeDetails;
+import java.util.Random;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 public class SingleThreadClient implements Runnable {
+  private int numOfSuccessReq = 0;
+  private int numOfFailReq = 0;
   private int numOfReq;
-  private CountDownLatch completed;
-  private List<Long> latencies;
-  private AtomicInteger numOfSuccessReq;
-  private AtomicInteger numOfFailReq;
+  private BlockingQueue<LatencyRecord> latencyRecords;
 
-  public SingleThreadClient(int numOfReq, CountDownLatch completed) {
+//    private  String basePath = "http://localhost:8080/assignment1_server_war_exploded";
+  private String basePath = "http://54.186.251.35:8080/assignment1_server_war";
+  private CountDownLatch completed;
+
+  public SingleThreadClient(int numOfReq, CountDownLatch completed, BlockingQueue<LatencyRecord> latencyRecord) {
     this.numOfReq = numOfReq;
     this.completed = completed;
-    this.latencies = new ArrayList<>();
-    numOfSuccessReq = new AtomicInteger();
-    numOfFailReq = new AtomicInteger();
+    this.latencyRecords = latencyRecord;
   }
 
+@Override
   public void run() {
-    try {
-      for (int i = 0; i < numOfReq; i++) {
-        long start = System.currentTimeMillis();
-        // send POST request here and get response
-        int responseCode = 0; // get response code from the response object;
-        long end = System.currentTimeMillis();
-        long latency = end - start;
-        latencies.add(latency);
-        if (responseCode == 201) {
-          numOfSuccessReq.incrementAndGet();
-        } else {
-          numOfFailReq.incrementAndGet();
+    ApiClient apiClient = new ApiClient();
+    SwipeApi swipeApi = new SwipeApi(apiClient);
+    apiClient.setBasePath(basePath);
+
+    for(int i = 0; i < numOfReq; i++) {
+      boolean success = false;
+      SwipeDetails body =  new SwipeDetails();
+      // randomly get the data
+      String leftorright = Module.swipe[new Random().nextInt(Module.swipe.length)];
+      body.setSwiper(String.valueOf(ThreadLocalRandom.current().nextInt(1, 5001)));
+      body.setSwipee(String.valueOf(ThreadLocalRandom.current().nextInt(1, 1000001)));
+      body.setComment(Module.comments[new Random().nextInt(Module.comments.length)]);
+
+      for(int j = 0; j < Module.MAX_RE_TRY; j++) {
+        try {
+          long start = System.currentTimeMillis();
+          swipeApi.swipeWithHttpInfo(body, leftorright);
+          numOfSuccessReq++;
+          success = true;
+          long end = System.currentTimeMillis();
+          long latency = end - start;
+          latencyRecords.put(new LatencyRecord(start, "POST", latency, 201));
+          break;
+        } catch (ApiException | InterruptedException e) {
+          e.printStackTrace();
+          System.err.println("Calling SwipeApi error");
         }
       }
-    } finally {
-      completed.countDown();
+      if(!success) {
+        numOfFailReq++;
+      }
     }
+    completed.countDown();
   }
 
-  public int getNumOfSuccessReq() {
-    return numOfSuccessReq.get();
+  public int getNumOfSuccessReq(){
+    return numOfSuccessReq;
+  }
+  
+  public int getGetNumOfFailReq(){
+    return numOfFailReq;
   }
 
-  public int getNumOfFailReq() {
-    return numOfFailReq.get();
+  public int getNumOfReq(){
+    return numOfReq;
   }
 
-  public List<Long> getLatencies() {
-    return latencies;
-  }
 }

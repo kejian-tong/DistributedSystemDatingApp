@@ -82,7 +82,7 @@ public class SwipeServlet extends HttpServlet {
     }
     return false;
   }
-
+  
   private boolean validSwiper(String swiper) {
     try {
       int swiperId = Integer.parseInt(swiper);
