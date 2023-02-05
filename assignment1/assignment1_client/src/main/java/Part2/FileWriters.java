@@ -25,7 +25,7 @@ public class FileWriters {
     String performanceFile = "performanceCount.csv";
     FileWriter writerNew = new FileWriter(performanceFile);
 
-    writerNew.write("Second,Requests\n");
+    writerNew.write("Seconds,Throughput/second\n");
     for(Map.Entry<Long, Integer> entry: requestsPerSecond.entrySet()) {
       writerNew.write(entry.getKey() + "," + entry.getValue() + "\n");
     }
