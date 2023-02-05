@@ -1,8 +1,5 @@
 package Part2;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 public class LatencyRecord {
   private long startTime;
   private String requestType;

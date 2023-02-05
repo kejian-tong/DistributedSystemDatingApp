@@ -2,6 +2,8 @@ package Part2;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -67,29 +69,16 @@ public class MultiThreadClient {
     long min = latencyRecords[0].getLatency();
     System.out.println("Min response time: " + min + " ms");
 
-
-    FileWriter fileWriter = new FileWriter(records);
-    fileWriter.run();
-
     // get the data for plot Performance for task 4
-//    Map<Long, Integer> requestsPerSecond = new HashMap<>();
-//    String performanceResults = "performanceResults.csv";
-//    java.io.FileWriter writer = new java.io.FileWriter(performanceResults);
-//    writer.write("Second, Number of Requests\n");
-//
-//    try (BufferedReader br = new BufferedReader(new FileReader(Arrays.toString(latencyRecords)))) {
-//      String line;
-//      while ((line = br.readLine()) != null) {
-//        String[] fields = line.split(",");
-//        long startTime = Long.parseLong(fields[0]) / 1000; // convert to seconds
-//        int count = requestsPerSecond.getOrDefault(startTime, 0);
-//        requestsPerSecond.put(startTime, count + 1);
-//      }
-//    }
-//
-//    for(Map.Entry<Long, Integer> entry: requestsPerSecond.entrySet()) {
-//      writer.write(entry.getKey() + "," + entry.getValue() + "\n");
-//    }
+    Map<Long, Integer> requestsPerSecond = new HashMap<>();
+    for(LatencyRecord latencyRecord: latencyRecords) {
+        long startTime = latencyRecord.getStartTime() / 1000; // convert to seconds
+        int count = requestsPerSecond.getOrDefault(startTime, 0);
+        requestsPerSecond.put(startTime, count + 1);
+    }
+
+    FileWriters.run(records);
+    FileWriters.runStats(requestsPerSecond); //task 4 data for plot
 
   }
 }

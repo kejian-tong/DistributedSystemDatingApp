@@ -17,7 +17,7 @@ public class SingleThreadClient implements Runnable {
   private BlockingQueue<LatencyRecord> latencyRecords;
 
 //    private  String basePath = "http://localhost:8080/assignment1_server_war_exploded";
-  private String basePath = "http://54.186.251.35:8080/assignment1_server_war";
+  private String basePath = "http://52.43.175.171:8080/assignment1_server_war";
   private CountDownLatch completed;
 
   public SingleThreadClient(int numOfReq, CountDownLatch completed, BlockingQueue<LatencyRecord> latencyRecord) {
