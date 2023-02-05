@@ -2,7 +2,6 @@ package Part1;
 
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
-import io.swagger.client.ApiResponse;
 import io.swagger.client.api.SwipeApi;
 import io.swagger.client.model.SwipeDetails;
 import java.util.Random;
@@ -55,7 +54,6 @@ public class SingleThreadClient implements Runnable {
       }
     }
     completed.countDown();
-//    System.out.println(Thread.currentThread().getName() + "completed");
   }
   
   public int getNumOfSuccessReq(){
@@ -64,10 +62,6 @@ public class SingleThreadClient implements Runnable {
   
   public int getGetNumOfFailReq(){
     return numOfFailReq;
-  }
-
-  public int getNumOfReq(){
-    return numOfReq;
   }
 
 }
