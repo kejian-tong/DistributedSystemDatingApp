@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class MultiThreadClient {
-  private static final int numOfThreads = 100;
+  private static final int numOfThreads = 20;
   private static AtomicInteger numOfSuccessReq = new AtomicInteger();
   private static AtomicInteger numOfFailReq = new AtomicInteger();
   private static final int totalRequest = 500000;
