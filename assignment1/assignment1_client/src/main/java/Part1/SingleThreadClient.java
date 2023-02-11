@@ -14,8 +14,7 @@ public class SingleThreadClient implements Runnable {
   private int numOfReq;
 
 //  private  String basePath = "http://localhost:8080/assignment1_server_war_exploded";
-//  private String basePath = "http://34.217.81.112:8080/assignment1_server_war";
-  private String basePath = "http://54.202.62.205:8080/Twinder_war/";
+  private String basePath = "http://34.217.81.112:8080/assignment1_server_war";
   private CountDownLatch completed;
 
   public SingleThreadClient(int numOfReq, CountDownLatch completed) {

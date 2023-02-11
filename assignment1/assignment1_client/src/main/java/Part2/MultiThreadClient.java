@@ -12,11 +12,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MultiThreadClient {
   private static final int numOfThreads = 100;
-  private static final int numOfReq = 5000;
   private static AtomicInteger numOfSuccessReq = new AtomicInteger();
   private static AtomicInteger numOfFailReq = new AtomicInteger();
-
-  private static BlockingQueue<LatencyRecord> records = new ArrayBlockingQueue<>(numOfThreads * numOfReq);
+  private static final int totalRequest = 500000;
+  private static BlockingQueue<LatencyRecord> records = new ArrayBlockingQueue<>(totalRequest);
 
 
   public static void main(String[] args) throws InterruptedException, IOException {
@@ -27,7 +26,11 @@ public class MultiThreadClient {
     SingleThreadClient[] singleThreadClients = new SingleThreadClient[numOfThreads];
 
     for(int i = 0; i < numOfThreads; i++) {
-      SingleThreadClient singleThreadClient = new SingleThreadClient(numOfReq, completed, records);
+      int numOfRequest = totalRequest / numOfThreads;
+      if (i == numOfThreads - 1 ) {
+        numOfRequest += totalRequest % numOfThreads;
+      }
+      SingleThreadClient singleThreadClient = new SingleThreadClient(numOfRequest, completed, records);
       Thread thread = new Thread(singleThreadClient);
       singleThreadClients[i] = singleThreadClient;
       thread.start();
