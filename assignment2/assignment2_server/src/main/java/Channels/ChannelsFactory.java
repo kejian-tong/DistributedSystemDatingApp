@@ -33,7 +33,22 @@ public class ChannelsFactory implements PooledObjectFactory<Channel> {
 
   @Override
   public PooledObject<Channel> makeObject() throws Exception {
-    return new DefaultPooledObject<Channel>(connection.createChannel());
+    Channel channel = connection.createChannel();
+    return new DefaultPooledObject<Channel>(channel);
+
+    // Declare the exchange and queue
+//    String exchangeName = "myExchange";
+//    String queueName = "myQueue";
+//    String routingKey = "myRoutingKey";
+
+//    channel.exchangeDeclare(exchangeName, "direct", true);
+//    channel.queueDeclare(queueName, false, false, false, null);
+
+    // Bind the queue to the exchange with the routing key
+//    channel.queueBind(queueName, exchangeName, routingKey);
+//
+//    return new DefaultPooledObject<Channel>(channel);
+
   }
 
   @Override
