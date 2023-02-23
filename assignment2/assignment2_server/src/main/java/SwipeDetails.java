@@ -2,6 +2,7 @@ public class SwipeDetails {
   private String swiper;
   private String swipee;
   private String comment;
+  private boolean isLike;
 
 
   public String getSwiper() {
@@ -16,4 +17,15 @@ public class SwipeDetails {
     return comment;
   }
 
+  public void setSwiper(String swiper) {
+    this.swiper = swiper;
+  }
+
+  public boolean getLike() {
+    return isLike;
+  }
+
+  public void setLike(boolean like) {
+    isLike = like;
+  }
 }

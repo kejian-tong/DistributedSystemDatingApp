@@ -13,6 +13,7 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 public class ChannelsFactory implements PooledObjectFactory<Channel> {
   private Connection connection;
   private final static int PORT = 5672;
+  // remember to update username/password to admin/admin when deploy to ec2
   private final static String USER_NAME = "guest";
   private final static String USER_PASSWORD = "guest";
 
@@ -35,20 +36,6 @@ public class ChannelsFactory implements PooledObjectFactory<Channel> {
   public PooledObject<Channel> makeObject() throws Exception {
     Channel channel = connection.createChannel();
     return new DefaultPooledObject<Channel>(channel);
-
-    // Declare the exchange and queue
-//    String exchangeName = "myExchange";
-//    String queueName = "myQueue";
-//    String routingKey = "myRoutingKey";
-
-//    channel.exchangeDeclare(exchangeName, "direct", true);
-//    channel.queueDeclare(queueName, false, false, false, null);
-
-    // Bind the queue to the exchange with the routing key
-//    channel.queueBind(queueName, exchangeName, routingKey);
-//
-//    return new DefaultPooledObject<Channel>(channel);
-
   }
 
   @Override
