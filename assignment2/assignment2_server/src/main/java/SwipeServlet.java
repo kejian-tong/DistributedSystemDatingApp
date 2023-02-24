@@ -69,6 +69,10 @@ public class SwipeServlet extends HttpServlet {
       return;
     }
 
+    // swipe left or right, right=like
+    String leftOrRight = urlParts[1];
+    boolean isLike = leftOrRight.equals("right") ? true : false;
+
     try {
       StringBuilder sb = new StringBuilder();
       String s;
@@ -88,13 +92,12 @@ public class SwipeServlet extends HttpServlet {
         responseMsg.setMessage("Invalid comments: comments can not exceed 256 characters");
         res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       } else {
+        swipeDetails.setLike(isLike);
         sendMsgToQueue(swipeDetails);
         responseMsg.setMessage("Write successful");
         res.setStatus(HttpServletResponse.SC_CREATED);
       }
       res.getWriter().write(gson.toJson(responseMsg));
-      res.getOutputStream().flush();
-
     } catch (Exception e) {
       e.printStackTrace();
       responseMsg.setMessage(e.getMessage());
@@ -103,6 +106,13 @@ public class SwipeServlet extends HttpServlet {
 
   private boolean isValidUrl(String[] urlParts) {
     if ((urlParts[1].equals("left") && urlParts.length == 2) || (urlParts[1].equals("right") && urlParts.length == 2)) {
+      return true;
+    }
+    return false;
+  }
+
+  private boolean isLike(String[] urlParts) {
+    if(urlParts[1].equals("right") && urlParts.length == 2) {
       return true;
     }
     return false;
