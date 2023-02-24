@@ -3,19 +3,14 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ConsumerRunnable implements Runnable{
   Connection connection;
-  Map<Integer, int[]> likeMap;
-  Map<Integer, List<Integer>> listSwipeRight;
 
-  public ConsumerRunnable(Connection connection, Map<Integer, int[]> likeMap,
-      Map<Integer, List<Integer>> listSwipeRight) {
+  public ConsumerRunnable(Connection connection) {
     this.connection = connection;
-    this.likeMap = likeMap;
-    this.listSwipeRight = listSwipeRight;
   }
 
   @Override
@@ -28,6 +23,7 @@ public class ConsumerRunnable implements Runnable{
     }
 
     try {
+//      channel.exchangeDeclare(Constant.EXCHANGE_NAME, "fanout"); // doesn't need in consumer
       channel.queueDeclare(Constant.QUEUE_NAME,true,false,false,null);
       channel.queueBind(Constant.QUEUE_NAME, Constant.EXCHANGE_NAME, "");
     } catch (IOException e) {
@@ -43,12 +39,12 @@ public class ConsumerRunnable implements Runnable{
       String comment = swipeDetails.getComment();
       boolean isLike = swipeDetails.getLike();
 
-      System.out.println("rec msg " + message);
+//      System.out.println(isLike);
+
+//      System.out.println("received message " + message);
       try {
-        SwipeRecord.addToNumOfLikeMap(swiper,isLike, likeMap);
-        if(isLike) {
-          SwipeRecord.addToNumOfLikeMap(swiper, swipee, listSwipeRight);
-        }
+        SwipeRecord.addToLikeOrDislikeMap(swiper,isLike);
+//        System.out.println(SwipeRecord.toNewString());
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -58,7 +54,7 @@ public class ConsumerRunnable implements Runnable{
     try {
       channel.basicConsume(Constant.QUEUE_NAME, false, deliverCallback, consumerTag -> { });
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      Logger.getLogger(ConsumerRunnable.class.getName()).log(Level.SEVERE, null, e);;
     }
 
   }

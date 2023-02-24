@@ -10,18 +10,25 @@ import com.rabbitmq.client.ConnectionFactory;
 
 
 public class MultiThreadConsumer {
-  private static Map<Integer, int[]> likeMap = new ConcurrentHashMap<>();
+  private static Map<Integer, int[]> likeOrDislikeMap = new ConcurrentHashMap<>();
   private static Map<Integer, List<Integer>> listSwipeRight = new ConcurrentHashMap<>();
+  private static Integer NUM_PER_THREADS = Constant.NUM_PER_THREADS;
 
 
   public static void main (String[] args) throws IOException, TimeoutException {
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setHost(Constant.HOST_NAME);
+    connectionFactory.setPort(5672);
+    connectionFactory.setUsername("guest");
+    connectionFactory.setPassword("guest");
+    // for ec2 user, should be used the below one
+//    connectionFactory.setUsername("admin");
+//    connectionFactory.setPassword("admin");
     Connection connection = connectionFactory.newConnection();
     ExecutorService executorService = Executors.newFixedThreadPool(Constant.NUM_PER_THREADS);
 
-    for(int i = 0; i < Constant.NUM_PER_THREADS; i++) {
-      executorService.execute(new ConsumerRunnable(connection, likeMap, listSwipeRight));
+    for(int i = 0; i < NUM_PER_THREADS; i++) {
+      executorService.execute(new ConsumerRunnable(connection));
     }
   }
 
