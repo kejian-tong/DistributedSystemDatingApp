@@ -5,80 +5,41 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.*;
 import com.google.gson.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
-import Channels.ChannelsPool;
 
 
 @WebServlet(name = "SwipeServlet", value = "/SwipeServlet")
 public class SwipeServlet extends HttpServlet {
-//  public final static String EXCHANGE_NAME = "swipe_exchange";
-//  private final static int MAX_SIZE = 10;
-//  private RMQChannelFactory factory;
-//  private RMQChannelPool rmqChannelPool = new RMQChannelPool(MAX_SIZE, factory);
+  public final static String EXCHANGE_NAME = "swipe_exchange";
+  private final static Integer POOL_SIZE = 20;
+  public final static String QUEUE_NAME = "swipe_queue";
 
-  public final static String QUEUE_NAME = "messages";
-  private ChannelsPool channelsPool = new ChannelsPool();
+  private RMQChannelPool rmqChannelPool;
   private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+  public SwipeServlet() {
+    try {
+      ConnectionFactory factory = new ConnectionFactory();
+      factory.setHost("localhost");
+      final Connection conn = factory.newConnection();
+      RMQChannelFactory channelFactory = new RMQChannelFactory(conn);
+      rmqChannelPool = new RMQChannelPool(POOL_SIZE, channelFactory);
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (TimeoutException e) {
+      e.printStackTrace();
+    }
+  }
+
 
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
     processHttpMethod(req, res, HttpMethod.POST);
 
-//    ConnectionFactory factory = new ConnectionFactory();
-//    factory.setHost("localhost");
-//    SwipeDetails swipeDetails = new SwipeDetails();
-//
-//    final Connection conn;
-//    try {
-//      conn = factory.newConnection();
-//    } catch (TimeoutException e) {
-//      throw new RuntimeException(e);
-//    }
-//    Runnable runnable = new Runnable() {
-//      @Override
-//      public void run() {
-//        try {
-          // channel per thread
-//          Channel channel = conn.createChannel();
-//          channel.queueDeclare(QueueName, true, false, false, null);
-
-//          String swipeExchange = "swipeExchange";
-//          channel.exchangeDeclare(swipeExchange, "fanout");
-//
-//          for (int i=0; i < NUM_MESSAGES_PER_THREAD; i++) {
-//            String message = formatSwipeDetails(swipeDetails) +  Integer.toString(i);
-//            channel.basicPublish("", QueueName, null, message.getBytes(StandardCharsets.UTF_8));
-//          }
-//          channel.close();
-//          System.out.println(" [All Messages  Sent '" );
-//        } catch (IOException | TimeoutException ex) {
-//          Logger.getLogger(SwipeServlet.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//      }
-//    };
-//    // start threads and wait for completion
-//    Thread t1 = new  Thread (runnable);
-//    Thread t2 = new  Thread (runnable);
-//    t1.start();
-//    t2.start();
-//    try {
-//      t1.join();
-//    } catch (InterruptedException e) {
-//      throw new RuntimeException(e);
-//    }
-//    try {
-//      t2.join();
-//    } catch (InterruptedException e) {
-//      throw new RuntimeException(e);
-//    }
-//    // close connection
-//    conn.close();
     }
 
   private void processHttpMethod(HttpServletRequest req, HttpServletResponse res, HttpMethod method)
@@ -191,23 +152,20 @@ public class SwipeServlet extends HttpServlet {
   }
 
   private void sendMsgToQueue(SwipeDetails swipeDetails) {
+
     try {
       String swipeMessage = gson.toJson(swipeDetails);
-//      String[] urlParts = new String[]{"left", "right"};
-//      String leftOrRight = urlParts[2];
-//      boolean like = leftOrRight == "left" ? true : false;
-//      swipeDetails.setLike(like);
-
-      Channel channel = channelsPool.getChannel();
+      Channel channel = rmqChannelPool.borrowObject();
 //      channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
-      channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+      channel.queueDeclare(QUEUE_NAME, true,false,false, null);
+//      channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "");
       channel.basicPublish("", QUEUE_NAME, null, swipeMessage.getBytes(StandardCharsets.UTF_8));
-
-      channelsPool.returnChannel(channel);
-    } catch (IOException e) {
-      e.printStackTrace();
+      rmqChannelPool.returnObject(channel);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
+
 
   private String formatSwipeDetails(SwipeDetails swipeDetails) {
     JsonObject message = new JsonObject();
