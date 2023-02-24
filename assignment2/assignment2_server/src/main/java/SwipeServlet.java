@@ -3,6 +3,7 @@ import RMQPool.RMQChannelPool;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.MessageProperties;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
 import javax.servlet.http.*;
@@ -15,8 +16,6 @@ import java.io.IOException;
 public class SwipeServlet extends HttpServlet {
   public final static String EXCHANGE_NAME = "swipe_exchange";
   private final static Integer POOL_SIZE = 20;
-  public final static String QUEUE_NAME = "swipe_queue";
-
   private RMQChannelPool rmqChannelPool;
   private Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -156,10 +155,9 @@ public class SwipeServlet extends HttpServlet {
     try {
       String swipeMessage = gson.toJson(swipeDetails);
       Channel channel = rmqChannelPool.borrowObject();
-//      channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
-      channel.queueDeclare(QUEUE_NAME, true,false,false, null);
-//      channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "");
-      channel.basicPublish("", QUEUE_NAME, null, swipeMessage.getBytes(StandardCharsets.UTF_8));
+      channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
+//      channel.queueDeclare(QUEUE_NAME, true,false,false, null);
+      channel.basicPublish(EXCHANGE_NAME, "", MessageProperties.PERSISTENT_TEXT_PLAIN, swipeMessage.getBytes(StandardCharsets.UTF_8));
       rmqChannelPool.returnObject(channel);
     } catch (Exception e) {
       throw new RuntimeException(e);
