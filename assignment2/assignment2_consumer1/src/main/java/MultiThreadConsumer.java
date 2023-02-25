@@ -1,8 +1,5 @@
 import com.rabbitmq.client.Connection;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -19,6 +16,7 @@ public class MultiThreadConsumer {
 
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setHost(Constant.HOST_NAME);
+    connectionFactory.setVirtualHost("cherry_broker"); // added ec2 RMQ vhost
     connectionFactory.setPort(5672);
 //    connectionFactory.setUsername("guest");
 //    connectionFactory.setPassword("guest");

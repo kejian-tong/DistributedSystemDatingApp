@@ -22,7 +22,12 @@ public class SwipeServlet extends HttpServlet {
   public SwipeServlet() {
     try {
       ConnectionFactory factory = new ConnectionFactory();
-      factory.setHost("localhost");
+//      factory.setHost("localhost");
+      factory.setHost("35.91.218.68"); // ec2 RMQ
+      factory.setVirtualHost("cherry_broker"); // added ec2 RMQ vhost
+      factory.setPort(5672);
+      factory.setUsername("admin");
+      factory.setPassword("admin");
       final Connection conn = factory.newConnection();
       RMQChannelFactory channelFactory = new RMQChannelFactory(conn);
       rmqChannelPool = new RMQChannelPool(POOL_SIZE, channelFactory);

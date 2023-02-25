@@ -46,7 +46,7 @@ public class ConsumerRunnable implements Runnable{
       if(isLike) {
         SwipeRecord.addToLikeMap(swiper, swipee,true);
       }
-      System.out.println(SwipeRecord.toPrintString());
+//      System.out.println(SwipeRecord.toPrintString());
       channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
     };
 

@@ -13,6 +13,7 @@ public class MultiThreadConsumer {
   public static void main (String[] args) throws IOException, TimeoutException {
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setHost(Constant.HOST_NAME);
+    connectionFactory.setVirtualHost("cherry_broker"); // added ec2 RMQ vhost
     connectionFactory.setPort(5672);
 //    connectionFactory.setUsername("guest");
 //    connectionFactory.setPassword("guest");

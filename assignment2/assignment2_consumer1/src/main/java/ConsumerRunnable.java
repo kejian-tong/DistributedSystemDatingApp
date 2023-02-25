@@ -3,11 +3,15 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ConsumerRunnable implements Runnable{
-  Connection connection;
+  private final Connection connection;
+  private static final int MAX_FAILURES = 3;
+  private static final Duration CIRCUIT_OPEN_DURATION = Duration.ofMinutes(1);
+
 
   public ConsumerRunnable(Connection connection) {
     this.connection = connection;
@@ -39,9 +43,6 @@ public class ConsumerRunnable implements Runnable{
       String comment = swipeDetails.getComment();
       boolean isLike = swipeDetails.getLike();
 
-//      System.out.println(isLike);
-
-//      System.out.println("received message " + message);
       try {
         SwipeRecord.addToLikeOrDislikeMap(swiper,isLike);
 //        System.out.println(SwipeRecord.toNewString());
