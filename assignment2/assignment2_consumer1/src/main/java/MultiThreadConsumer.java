@@ -10,12 +10,13 @@ import com.rabbitmq.client.ConnectionFactory;
 
 
 public class MultiThreadConsumer {
-  private static Map<Integer, int[]> likeOrDislikeMap = new ConcurrentHashMap<>();
-  private static Map<Integer, List<Integer>> listSwipeRight = new ConcurrentHashMap<>();
+//  private static Map<Integer, int[]> likeOrDislikeMap = new ConcurrentHashMap<>();
+//  private static Map<Integer, List<Integer>> listSwipeRight = new ConcurrentHashMap<>();
   private static Integer NUM_PER_THREADS = Constant.NUM_PER_THREADS;
 
 
   public static void main (String[] args) throws IOException, TimeoutException {
+
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setHost(Constant.HOST_NAME);
     connectionFactory.setPort(5672);
@@ -31,5 +32,4 @@ public class MultiThreadConsumer {
       executorService.execute(new ConsumerRunnable(connection));
     }
   }
-
 }

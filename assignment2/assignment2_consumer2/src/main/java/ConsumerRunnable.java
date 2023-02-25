@@ -5,17 +5,15 @@ import com.rabbitmq.client.DeliverCallback;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConsumerRunnable implements Runnable{
   Connection connection;
-  Map<Integer, int[]> likeMap;
-  Map<Integer, List<Integer>> listSwipeRight;
+  private static Map<Integer, List<Integer>> listSwipeRight = new ConcurrentHashMap<>();
 
-  public ConsumerRunnable(Connection connection, Map<Integer, int[]> likeMap,
-      Map<Integer, List<Integer>> listSwipeRight) {
+  public ConsumerRunnable(Connection connection) {
     this.connection = connection;
-    this.likeMap = likeMap;
-    this.listSwipeRight = listSwipeRight;
+
   }
 
   @Override
@@ -43,15 +41,12 @@ public class ConsumerRunnable implements Runnable{
       String comment = swipeDetails.getComment();
       boolean isLike = swipeDetails.getLike();
 
-      System.out.println("rec msg " + message);
-      try {
-        SwipeRecord.addToNumOfLikeMap(swiper,isLike, likeMap);
-        if(isLike) {
-          SwipeRecord.addToNumOfLikeMap(swiper, swipee, listSwipeRight);
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+
+//    System.out.println("received message " + message);
+      if(isLike) {
+        SwipeRecord.addToLikeMap(swiper, swipee,true);
       }
+      System.out.println(SwipeRecord.toPrintString());
       channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
     };
 

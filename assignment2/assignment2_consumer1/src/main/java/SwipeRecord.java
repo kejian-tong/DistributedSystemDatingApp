@@ -18,7 +18,7 @@ public class SwipeRecord {
   public static void addToLikeOrDislikeMap(Integer swiper, boolean isLike) {
     int[] likeOrDislike = likeOrDislikeMap.get(swiper);
     if (likeOrDislike == null) {
-      likeOrDislike = new int[]{0, 0}; // issues to solve putIfAbsent
+      likeOrDislike = new int[]{0, 0};
     }
     if (isLike) {
       likeOrDislike[0]++;
@@ -40,19 +40,6 @@ public class SwipeRecord {
     return sb.toString();
   }
 }
-
-//  public static void addToNumOfLikeMap(Integer swiper, Integer swipee, Map<Integer, List<Integer>> listSwipeRight) {
-//    List<Integer> swipeRightList = listSwipeRight.get(swiper);
-//    if (swipeRightList == null) {   // issue to need to be solved like first one
-//      swipeRightList = new CopyOnWriteArrayList<>();
-//    }
-//    if (swipeRightList.size() < 100 && !swipeRightList.contains(swipee)) {
-//      //
-//      swipeRightList.add(swipee); //
-//    }
-//    listSwipeRight.put(swiper, swipeRightList);
-//  }
-
 
 
 
