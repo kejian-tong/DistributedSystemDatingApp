@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Main-Class: MultiThreadConsumer
-Class-Path: gson-2.10.1.jar amqp-client-5.16.0.jar slf4j-api-1.7.36.jar 
- commons-logging-1.2.jar commons-pool2-2.11.1.jar commons-dbcp2-2.7.0.ja
+Class-Path: amqp-client-5.16.0.jar slf4j-api-1.7.36.jar commons-logging-
+ 1.2.jar commons-pool2-2.11.1.jar gson-2.10.1.jar commons-dbcp2-2.7.0.ja
  r slf4j-simple-1.7.36.jar
 

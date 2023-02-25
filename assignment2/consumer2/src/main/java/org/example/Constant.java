@@ -1,6 +1,9 @@
+package org.example;
+
+
 public class Constant {
-//  public final static String HOST_NAME = "localhost";
-public final static String HOST_NAME = "54.70.41.27";
+  public final static String HOST_NAME = "localhost";
+//public final static String HOST_NAME = "54.70.41.27";
 
   public final static String QUEUE_NAME = "swipe_queue_2";
   public final static String EXCHANGE_NAME = "swipe_exchange";

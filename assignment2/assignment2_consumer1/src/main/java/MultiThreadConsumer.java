@@ -20,11 +20,11 @@ public class MultiThreadConsumer {
     ConnectionFactory connectionFactory = new ConnectionFactory();
     connectionFactory.setHost(Constant.HOST_NAME);
     connectionFactory.setPort(5672);
-    connectionFactory.setUsername("guest");
-    connectionFactory.setPassword("guest");
+//    connectionFactory.setUsername("guest");
+//    connectionFactory.setPassword("guest");
     // for ec2 user, should be used the below one
-//    connectionFactory.setUsername("admin");
-//    connectionFactory.setPassword("admin");
+    connectionFactory.setUsername("admin");
+    connectionFactory.setPassword("admin");
     Connection connection = connectionFactory.newConnection();
     ExecutorService executorService = Executors.newFixedThreadPool(Constant.NUM_PER_THREADS);
 
