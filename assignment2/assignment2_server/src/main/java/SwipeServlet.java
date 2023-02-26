@@ -15,7 +15,7 @@ import java.io.IOException;
 @WebServlet(name = "SwipeServlet", value = "/SwipeServlet")
 public class SwipeServlet extends HttpServlet {
   public final static String EXCHANGE_NAME = "swipe_exchange";
-  private final static Integer POOL_SIZE = 20;
+  private final static Integer POOL_SIZE = 100;
   private RMQChannelPool rmqChannelPool;
   private Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -23,7 +23,7 @@ public class SwipeServlet extends HttpServlet {
     try {
       ConnectionFactory factory = new ConnectionFactory();
 //      factory.setHost("localhost");
-      factory.setHost("35.91.218.68"); // ec2 RMQ
+      factory.setHost("54.218.69.129"); // ec2 RMQ
       factory.setVirtualHost("cherry_broker"); // added ec2 RMQ vhost
       factory.setPort(5672);
       factory.setUsername("admin");
