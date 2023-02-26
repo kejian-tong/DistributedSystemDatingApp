@@ -49,6 +49,7 @@ public class ConsumerRunnable implements Runnable{
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+      // ack the receipt and indicating the message can be removed from queue
       channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
     };
 

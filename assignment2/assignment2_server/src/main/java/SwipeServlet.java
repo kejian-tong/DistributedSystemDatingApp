@@ -180,14 +180,14 @@ public class SwipeServlet extends HttpServlet {
   }
 
 
-  private String formatSwipeDetails(SwipeDetails swipeDetails) {
-    JsonObject message = new JsonObject();
-    message.addProperty("swiper", swipeDetails.getSwiper());
-    message.addProperty("swipee", swipeDetails.getSwipee());
-    if (swipeDetails.getComment() != null) {
-      message.addProperty("comment", swipeDetails.getComment());
-    }
-    return message.toString();
-  }
+//  private String formatSwipeDetails(SwipeDetails swipeDetails) {
+//    JsonObject message = new JsonObject();
+//    message.addProperty("swiper", swipeDetails.getSwiper());
+//    message.addProperty("swipee", swipeDetails.getSwipee());
+//    if (swipeDetails.getComment() != null) {
+//      message.addProperty("comment", swipeDetails.getComment());
+//    }
+//    return message.toString();
+//  }
 
 }
