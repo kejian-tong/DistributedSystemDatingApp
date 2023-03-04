@@ -1,0 +1,6 @@
+SwipeServlet.class
+SwipeDetails.class
+HttpMethod.class
+RMQPool/RMQChannelPool.class
+RMQPool/RMQChannelFactory.class
+ResponseMsg.class
