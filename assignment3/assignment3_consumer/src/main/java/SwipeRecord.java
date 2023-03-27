@@ -9,7 +9,7 @@ public class SwipeRecord {
   private Integer swipee;
   private boolean isLike;
   private static Map<Integer, int[]> likeOrDislikeMap = new ConcurrentHashMap<>();
-  private static Map<Integer, Set<Integer>> listSwipeRight = new ConcurrentHashMap<>();
+  public static Map<Integer, Set<Integer>> listSwipeRight = new ConcurrentHashMap<>();
 
 
   public SwipeRecord() {

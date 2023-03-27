@@ -1,3 +1,3 @@
 public enum HttpMethod {
-  POST,
+  POST
 }

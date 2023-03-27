@@ -2,7 +2,6 @@
   <artifact type="exploded-war" name="assignment3_server:war exploded">
     <output-path>$PROJECT_DIR$/out/artifacts/assignment3_server_war_exploded</output-path>
     <root id="root">
-      <element id="javaee-facet-resources" facet="assignment3_server/web/Web" />
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">
           <element id="module-output" name="assignment3_server" />
@@ -17,6 +16,7 @@
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.7.36" />
         </element>
       </element>
+      <element id="javaee-facet-resources" facet="assignment3_server/web/Web" />
     </root>
   </artifact>
 </component>

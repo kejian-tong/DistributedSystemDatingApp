@@ -7,7 +7,7 @@ public class MultiThreadClient {
   private static final int numOfThreads = 110;
   private static AtomicInteger numOfSuccessReq = new AtomicInteger();
   private static AtomicInteger numOfFailReq = new AtomicInteger();
-  private static final int totalRequest = 500000;
+  private static final int totalRequest = 300000;
 
   public static void main(String[] args) throws InterruptedException {
     long start = System.currentTimeMillis();

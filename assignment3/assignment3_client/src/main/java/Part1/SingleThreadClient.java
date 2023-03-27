@@ -13,9 +13,9 @@ public class SingleThreadClient implements Runnable {
   private int numOfFailReq = 0;
   private int numOfReq;
 
-//  private  String basePath = "http://localhost:8080/assignment2_server_war_exploded";
-//  private String basePath = "http://35.93.131.113:8080/assignment2_server_war";  //update server ec2 ip every time
-  private  String basePath = "http://cs6650-alb-1416126154.us-west-2.elb.amazonaws.com:8080/assignment2_server_war"; // ALB url
+//  private  String basePath = "http://localhost:8080/assignment3_server_war_exploded";
+  private String basePath = "http://35.87.146.34:8080/assignment3_server_war";  //update server ec2 ip every time
+//  private  String basePath = "http://cs6650-alb-1416126154.us-west-2.elb.amazonaws.com:8080/assignment2_server_war"; // ALB url
 
   private CountDownLatch completed;
 

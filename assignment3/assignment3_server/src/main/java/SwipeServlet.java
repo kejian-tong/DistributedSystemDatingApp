@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @WebServlet(name = "SwipeServlet", value = "/SwipeServlet")
 public class SwipeServlet extends HttpServlet {
-  public final static String EXCHANGE_NAME = "swipe_exchange";
+  public final static String QUEUE_NAME = "swipe_queue";
   private final static Integer POOL_SIZE = 30;
   private RMQChannelPool rmqChannelPool;
   private Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -26,7 +26,7 @@ public class SwipeServlet extends HttpServlet {
     try {
       ConnectionFactory factory = new ConnectionFactory();
 //      factory.setHost("localhost");
-      factory.setHost("34.208.62.124"); // ec2 RMQ, need to be updated every time and deploy to ec2
+      factory.setHost("54.203.101.168"); // ec2 RMQ, need to be updated every time and deploy to ec2
       factory.setVirtualHost("cherry_broker"); // added ec2 RMQ vhost
       factory.setPort(5672);
       factory.setUsername("admin");
@@ -40,7 +40,6 @@ public class SwipeServlet extends HttpServlet {
       e.printStackTrace();
     }
   }
-
 
 
   @Override
@@ -173,9 +172,9 @@ public class SwipeServlet extends HttpServlet {
     try {
       String swipeMessage = gson.toJson(swipeDetails);
       Channel channel = rmqChannelPool.borrowObject();
-      channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
-//      channel.queueDeclare(QUEUE_NAME, true,false,false, null);
-      channel.basicPublish(EXCHANGE_NAME, "", MessageProperties.PERSISTENT_TEXT_PLAIN, swipeMessage.getBytes(StandardCharsets.UTF_8));
+//      channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
+      channel.queueDeclare(QUEUE_NAME, true,false,false, null);
+      channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, swipeMessage.getBytes(StandardCharsets.UTF_8));
       rmqChannelPool.returnObject(channel);
     } catch (Exception e) {
       throw new RuntimeException(e);

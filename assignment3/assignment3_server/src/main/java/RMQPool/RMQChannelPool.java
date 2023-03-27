@@ -39,7 +39,7 @@ public class RMQChannelPool {
 
     try {
       return pool.take();
-    } catch (InterruptedException e) {
+    } catch (Exception e) {
       throw new RuntimeException("Error: no channels available" + e.toString());
     }
   }
