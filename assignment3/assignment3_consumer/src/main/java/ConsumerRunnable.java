@@ -141,7 +141,7 @@ public class ConsumerRunnable implements Runnable{
                   .append("matchedSwipers", Arrays.asList(matchedSwipers));
               matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
             }
-            SwipeRecord.addToLikeMap(swiper, swipee, true);
+//            SwipeRecord.addToLikeMap(swiper, swipee, true);
           }
         }
         if (!matchesBulkOperations.isEmpty()) {
@@ -154,4 +154,3 @@ public class ConsumerRunnable implements Runnable{
     }
   }
 }
-
