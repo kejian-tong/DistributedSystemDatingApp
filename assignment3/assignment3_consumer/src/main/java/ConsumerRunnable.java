@@ -1,8 +1,8 @@
 import com.google.gson.Gson;
-import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import com.rabbitmq.client.Channel;
@@ -10,8 +10,8 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -26,9 +26,9 @@ import org.bson.Document;
 public class ConsumerRunnable implements Runnable{
   private final Connection connection;
   private final MongoDatabase database;
-  private final int batchSize = 1000;
+  private final int batchSize = 100;
   private final long flushInterval = 10000; // 10 seconds
-  private final int threadPoolSize = 10;
+  private final int threadPoolSize = 30;
 
   private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
       threadPoolSize, // corePoolSize
@@ -38,9 +38,8 @@ public class ConsumerRunnable implements Runnable{
       new LinkedBlockingQueue<>()
   );
 
-  // Use ConcurrentLinkedQueue instead of ArrayList for thread safety
-  private final Queue<Document> swipeBatch = new ConcurrentLinkedQueue<>();
-//  private final List<Document> swipeBatch = new ArrayList<>();
+//  private final Queue<Document> swipeBatch = new ConcurrentLinkedQueue<>();
+  private final List<Document> swipeBatch = new ArrayList<>();
 
   public ConsumerRunnable(Connection connection, MongoDatabase database) {
     this.connection = connection;
@@ -67,7 +66,7 @@ public class ConsumerRunnable implements Runnable{
     timer.schedule(new TimerTask() {
       @Override
       public void run() {
-        flushBatch((ConcurrentLinkedQueue<Document>) swipeBatch);
+        flushBatch(swipeBatch);
       }
     }, flushInterval, flushInterval);
 
@@ -87,117 +86,72 @@ public class ConsumerRunnable implements Runnable{
 
       swipeBatch.add(swipeDocument);
 
-      // Check if the batch size reached 1000
-      if (swipeBatch.size() >= batchSize) {
-        flushBatch((ConcurrentLinkedQueue<Document>) swipeBatch);
-      }
-
       // ack the receipt and indicating the message can be removed from queue
       channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
     };
 
-    try {
+    try {// comment for basicConsume which is used to consume the message from the queue
       channel.basicConsume(Constant.QUEUE_NAME, false, deliverCallback, consumerTag -> { });
+
+      // Check if the batch size reached 1000
+      if (swipeBatch.size() >= batchSize) {
+        flushBatch(swipeBatch);
+      }
+
     } catch (IOException e) {
       Logger.getLogger(ConsumerRunnable.class.getName()).log(Level.SEVERE, null, e);;
     }
   }
 
-  public void flushBatch(ConcurrentLinkedQueue<Document> swipeBatch) {
+  public void flushBatch(List<Document> swipeBatch) {
     if (!swipeBatch.isEmpty()) {
       ConcurrentLinkedQueue<Document> batchToProcess = new ConcurrentLinkedQueue<>(swipeBatch);
       swipeBatch.clear();
 
       // Submit the task to the thread pool
       executor.submit(() -> {
-        // Perform batch write
-        MongoCollection<Document> collection = database.getCollection("swipeData");
-        List<WriteModel<Document>> bulkOperations = new ArrayList<>();
-        for (Document doc : batchToProcess) {
-          bulkOperations.add(new InsertOneModel<>(doc));
-        }
-        BulkWriteResult result = collection.bulkWrite(bulkOperations);
-
         // Update user stats and insert matches in a loop
+        // Perform batch write to matches and stats collections
+        MongoCollection<Document> matchesCollection = database.getCollection("matches");
+        MongoCollection<Document> statsCollection = database.getCollection("stats");
+        List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
+        List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
+
         for (Document doc : batchToProcess) {
           int swiper = doc.getInteger("swiper");
           int swipee = doc.getInteger("swipee");
           boolean isLike = doc.getBoolean("isLike");
 
           // Update user stats
-          updateUserStats(swiper, isLike);
+          Document query = new Document("swiper", swiper);
+          Document update;
+          if (isLike) {
+            update = new Document("$inc", new Document("numLikes", 1));
+          } else {
+            update = new Document("$inc", new Document("numDislikes", 1));
+          }
+          statsBulkOperations.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
 
           // Check for a match and insert it if found
           if (isLike) {
             Set<Integer> swipeRightSet = SwipeRecord.listSwipeRight.get(swipee);
             if (swipeRightSet != null && swipeRightSet.contains(swiper)) {
-              insertMatch(swiper, swipee);
+              Integer[] matchedSwipers = swipeRightSet.stream().toArray(Integer[]::new);
+              Document matchDocument = new Document("swiper", swiper)
+                  .append("matchedSwipers", Arrays.asList(matchedSwipers));
+              matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
             }
             SwipeRecord.addToLikeMap(swiper, swipee, true);
           }
         }
+        if (!matchesBulkOperations.isEmpty()) {
+          matchesCollection.bulkWrite(matchesBulkOperations);
+        }
+        if (!statsBulkOperations.isEmpty()) {
+          statsCollection.bulkWrite(statsBulkOperations);
+        }
       });
     }
   }
-
-  public void insertMatch(Integer swiper, Integer swipee) {
-    Document matchDocument = new Document("swiper", swiper)
-        .append("swipee", swipee);
-    MongoCollection<Document> collection = database.getCollection("matches");
-    collection.insertOne(matchDocument);
-  }
-
-
-  public void updateUserStats(Integer swiper, boolean isLike) {
-    MongoCollection<Document> collection = database.getCollection("stats");
-    Document query = new Document("swiper", swiper);
-    Document update;
-    if (isLike) {
-      update = new Document("$inc", new Document("numLikes", 1));
-    } else {
-      update = new Document("$inc", new Document("numDislikes", 1));
-    }
-    synchronized (this) {
-      collection.updateOne(query, update, new UpdateOptions().upsert(true));
-    }
-  }
-
-  // uncomment this method to use ArrayList instead of ConcurrentLinkedQueue
-//  public synchronized void flushBatch(List<Document> swipeBatch) {
-//    if (!swipeBatch.isEmpty()) {
-//      List<Document> batchToProcess = new ArrayList<>(swipeBatch);
-//      swipeBatch.clear();
-//
-//      // Submit the task to the thread pool
-//      executor.submit(() -> {
-//        // Perform batch write
-//        MongoCollection<Document> collection = database.getCollection("swipeData");
-//        List<WriteModel<Document>> bulkOperations = new ArrayList<>();
-//        for (Document doc : batchToProcess) {
-//          bulkOperations.add(new InsertOneModel<>(doc));
-//        }
-//        BulkWriteResult result = collection.bulkWrite(bulkOperations);
-//
-//        // Update user stats and insert matches in a loop
-//        for (Document doc : batchToProcess) {
-//          int swiper = doc.getInteger("swiper");
-//          int swipee = doc.getInteger("swipee");
-//          boolean isLike = doc.getBoolean("isLike");
-//
-//          // Update user stats
-//          MultiThreadConsumer.updateUserStats(database, swiper, isLike);
-//
-//          // Check for a match and insert it if found
-//          if (isLike) {
-//            Set<Integer> swipeRightSet = SwipeRecord.listSwipeRight.get(swipee);
-//            if (swipeRightSet != null && swipeRightSet.contains(swiper)) {
-//              MultiThreadConsumer.insertMatch(database, swiper, swipee);
-//            }
-//            SwipeRecord.addToLikeMap(swiper, swipee, true);
-//          }
-//        }
-//      });
-//    }
-//  }
 }
 

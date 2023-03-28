@@ -41,17 +41,6 @@ public class SwipeRecord {
       }
     }
   }
-
-//  public static String toNewString() {
-//    StringBuilder sb = new StringBuilder();
-//    for (Map.Entry<Integer, int[]> entry : likeOrDislikeMap.entrySet()) {
-//      Integer swiper = entry.getKey();
-//      int[] likeOrDislike = entry.getValue();
-//      sb.append("Swiper ID: ").append(swiper).append(", Likes: ").append(likeOrDislike[0])
-//          .append(", Dislikes: ").append(likeOrDislike[1]).append("\n");
-//    }
-//    return sb.toString();
-//  }
 }
 
 

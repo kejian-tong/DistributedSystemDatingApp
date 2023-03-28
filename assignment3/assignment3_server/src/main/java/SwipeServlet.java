@@ -26,7 +26,7 @@ public class SwipeServlet extends HttpServlet {
     try {
       ConnectionFactory factory = new ConnectionFactory();
 //      factory.setHost("localhost");
-      factory.setHost("54.203.101.168"); // ec2 RMQ, need to be updated every time and deploy to ec2
+      factory.setHost("54.185.253.74"); // ec2 RMQ, need to be updated every time and deploy to ec2
       factory.setVirtualHost("cherry_broker"); // added ec2 RMQ vhost
       factory.setPort(5672);
       factory.setUsername("admin");

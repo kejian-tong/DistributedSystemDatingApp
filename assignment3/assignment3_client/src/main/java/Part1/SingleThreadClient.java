@@ -13,8 +13,8 @@ public class SingleThreadClient implements Runnable {
   private int numOfFailReq = 0;
   private int numOfReq;
 
-//  private  String basePath = "http://localhost:8080/assignment3_server_war_exploded";
-  private String basePath = "http://35.87.146.34:8080/assignment3_server_war";  //update server ec2 ip every time
+//  private  String basePath = "http://localhost:8080/assignment2_server_war_exploded";
+  private String basePath = "http://35.162.163.38:8080/assignment3_server_war";  //update server ec2 ip every time
 //  private  String basePath = "http://cs6650-alb-1416126154.us-west-2.elb.amazonaws.com:8080/assignment2_server_war"; // ALB url
 
   private CountDownLatch completed;
@@ -36,7 +36,7 @@ public class SingleThreadClient implements Runnable {
       // randomly get the data
       String leftorright = Module.swipe[new Random().nextInt(Module.swipe.length)];
       body.setSwiper(String.valueOf(ThreadLocalRandom.current().nextInt(1, 5001)));
-      body.setSwipee(String.valueOf(ThreadLocalRandom.current().nextInt(1, 1000001)));
+      body.setSwipee(String.valueOf(ThreadLocalRandom.current().nextInt(1, 5001)));
       body.setComment(Module.comments[new Random().nextInt(Module.comments.length)]);
 
       for(int j = 0; j < Module.MAX_RE_TRY; j++) {
