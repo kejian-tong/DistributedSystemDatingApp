@@ -36,9 +36,7 @@ public class SwipeRecord {
   public static void addToLikeMap(Integer swiper, Integer swipee, boolean isLike) {
     if (isLike) {
       Set<Integer> swipeRightSet = listSwipeRight.computeIfAbsent(swiper, k -> new HashSet<>());
-      if (swipeRightSet.size() < 100) {
         swipeRightSet.add(swipee);
-      }
     }
   }
 }
