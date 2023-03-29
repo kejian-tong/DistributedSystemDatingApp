@@ -15,22 +15,22 @@ public class SwipeRecord {
   public SwipeRecord() {
   }
 
-  public static Map<Integer, int[]> getLikeOrDislikeMap() {
-    return likeOrDislikeMap;
-  }
-
-  public static void addToLikeOrDislikeMap(Integer swiper, boolean isLike) {
-    int[] likeOrDislike = likeOrDislikeMap.get(swiper);
-    if (likeOrDislike == null) {
-      likeOrDislike = new int[]{0, 0};
-    }
-    if (isLike) {
-      likeOrDislike[0]++;
-    } else {
-      likeOrDislike[1]++;
-    }
-    likeOrDislikeMap.put(swiper, likeOrDislike);
-  }
+//  public static Map<Integer, int[]> getLikeOrDislikeMap() {
+//    return likeOrDislikeMap;
+//  }
+//
+//  public static void addToLikeOrDislikeMap(Integer swiper, boolean isLike) {
+//    int[] likeOrDislike = likeOrDislikeMap.get(swiper);
+//    if (likeOrDislike == null) {
+//      likeOrDislike = new int[]{0, 0};
+//    }
+//    if (isLike) {
+//      likeOrDislike[0]++;
+//    } else {
+//      likeOrDislike[1]++;
+//    }
+//    likeOrDislikeMap.put(swiper, likeOrDislike);
+//  }
 
 
   public static void addToLikeMap(Integer swiper, Integer swipee, boolean isLike) {
