@@ -11,7 +11,10 @@ import com.rabbitmq.client.DeliverCallback;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -107,57 +110,96 @@ public class ConsumerRunnable implements Runnable{
       swipeBatch.clear();
 
       // Submit the task to the thread pool
-      executor.submit(() -> {
-        // Update user stats and insert matches in a loop
-        // Perform batch write to matches and stats collections
-        MongoCollection<Document> matchesCollection = database.getCollection("matches");
-        MongoCollection<Document> statsCollection = database.getCollection("stats");
-        List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
-        List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
-
-        for (Document doc : batchToProcess) {
-          int swiper = doc.getInteger("swiper");
-          int swipee = doc.getInteger("swipee");
-          boolean isLike = doc.getBoolean("isLike");
-
-          // Update user stats
-          Document query = new Document("swiper", swiper);
-          Document update;
-          if (isLike) {
-            update = new Document("$inc", new Document("numLikes", 1));
-          } else {
-            update = new Document("$inc", new Document("numDislikes", 1));
-          }
-          statsBulkOperations.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
-
-          // Check for a match and insert it if found
+      executor.submit(() -> processMatches(batchToProcess));
+      // Submit the task to the thread pool
+//      executor.submit(() -> {
+//        // Update user stats and insert matches in a loop
+//        // Perform batch write to matches and stats collections
+//        MongoCollection<Document> matchesCollection = database.getCollection("matches");
+//        MongoCollection<Document> statsCollection = database.getCollection("stats");
+//        List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
+//        List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
+//
+//        for (Document doc : batchToProcess) {
+//          int swiper = doc.getInteger("swiper");
+//          int swipee = doc.getInteger("swipee");
+//          boolean isLike = doc.getBoolean("isLike");
+//
+//          // Update user stats
+//          Document query = new Document("swiper", swiper);
+//          Document update;
 //          if (isLike) {
-//            Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
-//            if (swipeeRightSet != null && swipeeRightSet.contains(swiper)) {
-//              Integer[] matchedSwipers = swipeeRightSet.stream().toArray(Integer[]::new);
-//              Document matchDocument = new Document("swiper", swiper)
-//                  .append("matchedSwipers", Arrays.asList(matchedSwipers));
-//              matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
-//            }
-//            SwipeRecord.addToLikeMap(swiper, swipee, true);
+//            update = new Document("$inc", new Document("numLikes", 1));
+//          } else {
+//            update = new Document("$inc", new Document("numDislikes", 1));
 //          }
-          if (isLike) {
-            SwipeRecord.addToLikeMap(swiper, swipee, true);
-            Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
-            if (swipeeRightSet != null && swipeeRightSet.contains(swiper)) {
-              Document matchDocument = new Document("swiper", swiper)
-                  .append("swipee", swipee);
-              matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
-            }
-          }
+//          statsBulkOperations.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
+//
+//          // Check for a match and insert it if found
+////          if (isLike) {
+////            SwipeRecord.addToLikeMap(swiper, swipee, true);
+////            Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
+////            if (swipeeRightSet != null && swipeeRightSet.contains(swiper)) {
+////              Document matchDocument = new Document("swiper", swiper)
+////                  .append("swipee", swipee);
+////              matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
+////            }
+////          }
+//
+//        }
+//        if (!matchesBulkOperations.isEmpty()) {
+//          matchesCollection.bulkWrite(matchesBulkOperations);
+//        }
+//        if (!statsBulkOperations.isEmpty()) {
+//          statsCollection.bulkWrite(statsBulkOperations);
+//        }
+//      });
+    }
+  }
+
+  private void processMatches(ConcurrentLinkedQueue<Document> batchToProcess) {
+    // Update user stats and insert matches in a loop
+    // Perform batch write to matches and stats collections
+    MongoCollection<Document> matchesCollection = database.getCollection("matches");
+    MongoCollection<Document> statsCollection = database.getCollection("stats");
+    List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
+    List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
+
+    Map<Integer, Set<Integer>> matchMap = new HashMap<>();
+
+    for (Document doc : batchToProcess) {
+      int swiper = doc.getInteger("swiper");
+      int swipee = doc.getInteger("swipee");
+      boolean isLike = doc.getBoolean("isLike");
+
+      // Update user stats
+      Document query = new Document("swiper", swiper);
+      Document update;
+      if (isLike) {
+        update = new Document("$inc", new Document("numLikes", 1));
+      } else {
+        update = new Document("$inc", new Document("numDislikes", 1));
+      }
+      statsBulkOperations.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
+
+      // Check for a match and insert it if found
+      if (isLike) {
+        SwipeRecord.addToLikeMap(swiper, swipee, true);
+        Set<Integer> swiperRightSet = SwipeRecord.listSwipeRight.get(swiper);
+        Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
+        if (swiperRightSet != null && swipeeRightSet != null && swiperRightSet.contains(swipee) && swipeeRightSet.contains(swiper)) {
+          Document matchDocument = new Document("swiper", swiper)
+              .append("swipee", swipee);
+          matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
         }
-        if (!matchesBulkOperations.isEmpty()) {
-          matchesCollection.bulkWrite(matchesBulkOperations);
-        }
-        if (!statsBulkOperations.isEmpty()) {
-          statsCollection.bulkWrite(statsBulkOperations);
-        }
-      });
+      }
+    }
+
+    if (!matchesBulkOperations.isEmpty()) {
+      matchesCollection.bulkWrite(matchesBulkOperations);
+    }
+    if (!statsBulkOperations.isEmpty()) {
+      statsCollection.bulkWrite(statsBulkOperations);
     }
   }
 }
