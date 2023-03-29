@@ -26,7 +26,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bson.Document;
 
-public class ConsumerRunnable implements Runnable{
+public class ConsumerRunnable implements Runnable {
+
   private final Connection connection;
   private final MongoDatabase database;
   private final int batchSize = 100;
@@ -59,7 +60,7 @@ public class ConsumerRunnable implements Runnable{
     }
 
     try {
-      channel.queueDeclare(Constant.QUEUE_NAME,true,false,false,null);
+      channel.queueDeclare(Constant.QUEUE_NAME, true, false, false, null);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -98,9 +99,11 @@ public class ConsumerRunnable implements Runnable{
     };
 
     try {// comment for basicConsume which is used to consume the message from the queue
-      channel.basicConsume(Constant.QUEUE_NAME, false, deliverCallback, consumerTag -> { });
+      channel.basicConsume(Constant.QUEUE_NAME, false, deliverCallback, consumerTag -> {
+      });
     } catch (IOException e) {
-      Logger.getLogger(ConsumerRunnable.class.getName()).log(Level.SEVERE, null, e);;
+      Logger.getLogger(ConsumerRunnable.class.getName()).log(Level.SEVERE, null, e);
+      ;
     }
   }
 
@@ -157,6 +160,66 @@ public class ConsumerRunnable implements Runnable{
     }
   }
 
+  //  private void processMatches(ConcurrentLinkedQueue<Document> batchToProcess) {
+//    // Update user stats and insert matches in a loop
+//    // Perform batch write to matches and stats collections
+//    MongoCollection<Document> matchesCollection = database.getCollection("matches");
+//    MongoCollection<Document> statsCollection = database.getCollection("stats");
+//    List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
+//    List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
+//    Map<Integer, List<Integer>> mutualMatches = new HashMap<>();
+//
+//    for (Document doc : batchToProcess) {
+//      int swiper = doc.getInteger("swiper");
+//      int swipee = doc.getInteger("swipee");
+//      boolean isLike = doc.getBoolean("isLike");
+//
+//      // Update user stats
+//      Document query = new Document("swiper", swiper);
+//      Document update;
+//      if (isLike) {
+//        update = new Document("$inc", new Document("numLikes", 1));
+//      } else {
+//        update = new Document("$inc", new Document("numDislikes", 1));
+//      }
+//      statsBulkOperations.add(
+//          new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
+//
+//      // Check for a mutual match and insert it if found
+//      if (isLike && swiper != swipee) {
+//        SwipeRecord.addToLikeMap(swiper, swipee, true);
+//        Set<Integer> swiperRightSet = SwipeRecord.listSwipeRight.get(swiper);
+//        Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
+//        if (swiperRightSet != null && swipeeRightSet != null && swiperRightSet.contains(swipee)
+//            && swipeeRightSet.contains(swiper)) {
+//          mutualMatches.computeIfAbsent(swiper, k -> new ArrayList<>()).add(swipee);
+//        }
+//      }
+//    }
+//
+//    // Combine mutual matches with the same swiper ID
+//    Map<Integer, List<Integer>> combinedMutualMatches = new HashMap<>();
+//    for (Map.Entry<Integer, List<Integer>> entry : mutualMatches.entrySet()) {
+//      combinedMutualMatches.merge(entry.getKey(), entry.getValue(), (oldList, newList) -> {
+//        oldList.addAll(newList);
+//        return oldList;
+//      });
+//    }
+//
+//    // Create bulk operations for the mutual matches
+//    for (Map.Entry<Integer, List<Integer>> entry : mutualMatches.entrySet()) {
+//      Document matchDocument = new Document("swiper", entry.getKey())
+//          .append("matchedSwipees", entry.getValue());
+//      matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
+//    }
+//
+//    if (!matchesBulkOperations.isEmpty()) {
+//      matchesCollection.bulkWrite(matchesBulkOperations);
+//    }
+//    if (!statsBulkOperations.isEmpty()) {
+//      statsCollection.bulkWrite(statsBulkOperations);
+//    }
+//  }
   private void processMatches(ConcurrentLinkedQueue<Document> batchToProcess) {
     // Update user stats and insert matches in a loop
     // Perform batch write to matches and stats collections
@@ -164,8 +227,7 @@ public class ConsumerRunnable implements Runnable{
     MongoCollection<Document> statsCollection = database.getCollection("stats");
     List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
     List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
-
-    Map<Integer, Set<Integer>> matchMap = new HashMap<>();
+    Map<Integer, Set<Integer>> mutualMatches = new HashMap<>();
 
     for (Document doc : batchToProcess) {
       int swiper = doc.getInteger("swiper");
@@ -180,18 +242,33 @@ public class ConsumerRunnable implements Runnable{
       } else {
         update = new Document("$inc", new Document("numDislikes", 1));
       }
-      statsBulkOperations.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
+      statsBulkOperations.add(
+          new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
 
-      // Check for a match and insert it if found
-      if (isLike) {
+      // Check for a mutual match and insert it if found
+      if (isLike && swiper != swipee) {
         SwipeRecord.addToLikeMap(swiper, swipee, true);
         Set<Integer> swiperRightSet = SwipeRecord.listSwipeRight.get(swiper);
         Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
-        if (swiperRightSet != null && swipeeRightSet != null && swiperRightSet.contains(swipee) && swipeeRightSet.contains(swiper)) {
-          Document matchDocument = new Document("swiper", swiper)
-              .append("swipee", swipee);
-          matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
+        if (swiperRightSet != null && swipeeRightSet != null && swiperRightSet.contains(swipee)
+            && swipeeRightSet.contains(swiper)) {
+          mutualMatches.computeIfAbsent(swiper, k -> new HashSet<>()).add(swipee);
         }
+      }
+    }
+
+    // Create bulk operations for the mutual matches
+    for (Map.Entry<Integer, Set<Integer>> entry : mutualMatches.entrySet()) {
+      Document existingMatchDocument = matchesCollection.find(
+          new Document("swiper", entry.getKey())).first();
+      if (existingMatchDocument != null) {
+        matchesCollection.updateOne(new Document("swiper", entry.getKey()),
+            new Document("$addToSet",
+                new Document("matchedSwipees", new Document("$each", entry.getValue()))));
+      } else {
+        Document matchDocument = new Document("swiper", entry.getKey())
+            .append("matchedSwipees", new ArrayList<>(entry.getValue()));
+        matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
       }
     }
 
@@ -202,4 +279,5 @@ public class ConsumerRunnable implements Runnable{
       statsCollection.bulkWrite(statsBulkOperations);
     }
   }
+
 }
