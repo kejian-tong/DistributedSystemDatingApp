@@ -9,7 +9,9 @@ public class SwipeRecord {
   private Integer swipee;
   private boolean isLike;
   private static Map<Integer, int[]> likeOrDislikeMap = new ConcurrentHashMap<>();
-  public static Map<Integer, Set<Integer>> listSwipeRight = new ConcurrentHashMap<>();
+  public static Map<Integer, Set<Integer>> listSwiperRight = new ConcurrentHashMap<>();
+  public static Map<Integer, Set<Integer>> listSwipeeRight = new ConcurrentHashMap<>();
+
 
 
   public SwipeRecord() {
@@ -35,8 +37,14 @@ public class SwipeRecord {
 
   public static void addToLikeMap(Integer swiper, Integer swipee, boolean isLike) {
     if (isLike) {
-      Set<Integer> swipeRightSet = listSwipeRight.computeIfAbsent(swiper, k -> new HashSet<>());
-        swipeRightSet.add(swipee);
+      Set<Integer> swiperRightSet = listSwiperRight.computeIfAbsent(swiper, k -> new HashSet<>());
+      Set<Integer> swipeeRightSet = listSwipeeRight.computeIfAbsent(swipee, k -> new HashSet<>());
+      if (swiperRightSet.size() < 100) {
+        swiperRightSet.add(swipee);
+      }
+      if (swipeeRightSet.size() < 100) {
+        swipeeRightSet.add(swiper);
+      }
     }
   }
 }
