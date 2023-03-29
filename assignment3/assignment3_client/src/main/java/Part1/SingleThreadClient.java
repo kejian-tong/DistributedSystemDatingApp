@@ -35,8 +35,8 @@ public class SingleThreadClient implements Runnable {
       SwipeDetails body =  new SwipeDetails();
       // randomly get the data
       String leftorright = Module.swipe[new Random().nextInt(Module.swipe.length)];
-      body.setSwiper(String.valueOf(ThreadLocalRandom.current().nextInt(1, 1001)));
-      body.setSwipee(String.valueOf(ThreadLocalRandom.current().nextInt(1, 1001)));
+      body.setSwiper(String.valueOf(ThreadLocalRandom.current().nextInt(1, 5001)));
+      body.setSwipee(String.valueOf(ThreadLocalRandom.current().nextInt(1, 5001)));
       body.setComment(Module.comments[new Random().nextInt(Module.comments.length)]);
 
       for(int j = 0; j < Module.MAX_RE_TRY; j++) {
