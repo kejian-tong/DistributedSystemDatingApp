@@ -1,7 +1,6 @@
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
@@ -10,14 +9,12 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -31,7 +28,6 @@ public class ConsumerRunnable implements Runnable {
   private final Connection connection;
   private final MongoDatabase database;
   private final int batchSize = 100;
-  private final long flushInterval = 10000; // 10 seconds
   private final int threadPoolSize = 30;
 
   private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -64,16 +60,14 @@ public class ConsumerRunnable implements Runnable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
 //    // Timer to periodically flush remaining events in the batch
-    Timer timer = new Timer();
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        flushBatch(swipeBatch);
-      }
-    }, flushInterval, flushInterval);
-
+//    Timer timer = new Timer();
+//    timer.schedule(new TimerTask() {
+//      @Override
+//      public void run() {
+//        flushBatch(swipeBatch);
+//      }
+//    }, flushInterval, flushInterval);
     DeliverCallback deliverCallback = (consumerTag, delivery) -> {
       String message = new String(delivery.getBody(), "UTF-8");
       Gson gson = new Gson();
