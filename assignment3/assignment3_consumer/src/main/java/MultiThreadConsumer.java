@@ -19,13 +19,12 @@ public class MultiThreadConsumer {
   public static void main (String[] args) throws IOException, TimeoutException {
     // Set up MongoDB URI
     String uri = "mongodb://admin:admin@54.190.52.72:27017/?maxPoolSize=50"; // ec2 mongodb public ip
-    // MongoDb Atlas string uri
-    // String uri = mongodb+srv://admin:admin@cluster0.lleghsz.mongodb.net/?retryWrites=true&w=majority
     // Create MongoDB client
     if(mongoClient == null) {
       MongoClientURI mongoClientURI = new MongoClientURI(uri);
       mongoClient = new MongoClient(mongoClientURI);
     }
+
 
     // Get MongoDB database for each thread
     ExecutorService executorService = Executors.newFixedThreadPool(Constant.NUM_PER_THREADS);

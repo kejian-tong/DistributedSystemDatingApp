@@ -1,4 +1,5 @@
 import com.google.gson.Gson;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOneModel;
@@ -295,6 +296,8 @@ public class ConsumerRunnable implements Runnable {
     }
     if (!statsBulkOperations.isEmpty()) {
       statsCollection.bulkWrite(statsBulkOperations);
+//      BulkWriteResult ans = statsCollection.bulkWrite(statsBulkOperations);
+//      System.out.println(ans);
     }
   }
 }
