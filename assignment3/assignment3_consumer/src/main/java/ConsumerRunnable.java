@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bson.Document;
@@ -30,6 +31,7 @@ public class ConsumerRunnable implements Runnable {
   private final MongoDatabase database;
   private final int batchSize = 100;
   private final int threadPoolSize = 30;
+  private final AtomicInteger processedMessageCount = new AtomicInteger(0);
 
   private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
       threadPoolSize, // corePoolSize
@@ -85,10 +87,16 @@ public class ConsumerRunnable implements Runnable {
 
       swipeBatch.add(swipeDocument);
 
+      int currentCount = processedMessageCount.incrementAndGet();
+
       // Check if the batch size reached 1000
       if (swipeBatch.size() >= batchSize) {
         flushBatch(swipeBatch);
         // ack the receipt and indicating the message can be removed from queue
+//        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), true);
+      }
+      // send ack after every batchSize processed msg
+      if (currentCount % batchSize == 0) {
         channel.basicAck(delivery.getEnvelope().getDeliveryTag(), true);
       }
     };
@@ -296,8 +304,6 @@ public class ConsumerRunnable implements Runnable {
     }
     if (!statsBulkOperations.isEmpty()) {
       statsCollection.bulkWrite(statsBulkOperations);
-//      BulkWriteResult ans = statsCollection.bulkWrite(statsBulkOperations);
-//      System.out.println(ans);
     }
   }
 }
