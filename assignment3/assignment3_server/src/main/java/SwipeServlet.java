@@ -45,7 +45,6 @@ public class SwipeServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
     processHttpMethod(req, res, HttpMethod.POST);
-
     }
 
   private void processHttpMethod(HttpServletRequest req, HttpServletResponse res, HttpMethod method)
@@ -180,16 +179,4 @@ public class SwipeServlet extends HttpServlet {
       throw new RuntimeException(e);
     }
   }
-
-
-//  private String formatSwipeDetails(SwipeDetails swipeDetails) {
-//    JsonObject message = new JsonObject();
-//    message.addProperty("swiper", swipeDetails.getSwiper());
-//    message.addProperty("swipee", swipeDetails.getSwipee());
-//    if (swipeDetails.getComment() != null) {
-//      message.addProperty("comment", swipeDetails.getComment());
-//    }
-//    return message.toString();
-//  }
-
 }

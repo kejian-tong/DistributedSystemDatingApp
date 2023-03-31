@@ -14,6 +14,7 @@
           <element id="library" level="project" name="Maven: org.apache.commons:commons-pool2:2.8.0" />
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.36" />
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.7.36" />
+          <element id="library" level="project" name="Maven: org.mongodb:mongo-java-driver:3.12.12" />
         </element>
       </element>
       <element id="javaee-facet-resources" facet="assignment3_server/web/Web" />
