@@ -24,7 +24,7 @@ public class StatsServlet extends HttpServlet {
   public void init() throws ServletException{
     super.init();
     try {
-      String uri = "mongodb://admin:admin@35.87.116.245:27017/?maxPoolSize=50"; // ec2 mongodb public ip
+      String uri = "mongodb://admin:admin@34.218.229.151:27017/?maxPoolSize=100"; // ec2 mongodb public ip
       // Create MongoDB client
       if(mongoClient == null) {
         MongoClientURI mongoClientURI = new MongoClientURI(uri);

@@ -2,10 +2,10 @@
   <artifact type="exploded-war" name="assignment3_client:war exploded">
     <output-path>$PROJECT_DIR$/out/artifacts/assignment3_client_war_exploded</output-path>
     <root id="root">
-      <element id="javaee-facet-resources" facet="assignment3_client/web/Web" />
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">
           <element id="module-output" name="assignment3_client" />
+          <element id="module-output" name="swagger-java-client" />
         </element>
         <element id="directory" name="lib">
           <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.8.1" />
@@ -23,6 +23,7 @@
           <element id="library" level="project" name="Maven: org.threeten:threetenbp:1.3.5" />
         </element>
       </element>
+      <element id="javaee-facet-resources" facet="assignment3_client/web/Web" />
     </root>
   </artifact>
 </component>

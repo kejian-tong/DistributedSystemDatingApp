@@ -71,7 +71,12 @@ public class ConsumerRunnable implements Runnable {
 //        flushBatch(swipeBatch);
 //      }
 //    }, flushInterval, flushInterval);
+//    System.out.println("Thread name is: " + Thread.currentThread().getName()); // TODO: to check if multiple threads are indeed being created and executed
+
     DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+//      String threadName = Thread.currentThread().getName();
+//      System.out.println("Received message on thread: " + threadName);
+
       String message = new String(delivery.getBody(), "UTF-8");
       Gson gson = new Gson();
       SwipeDetails swipeDetails = gson.fromJson(message, SwipeDetails.class);
@@ -258,7 +263,7 @@ public class ConsumerRunnable implements Runnable {
       boolean isLike = doc.getBoolean("isLike");
 
       // Update user stats
-      Document query = new Document("swiper", swiper);
+      Document query = new Document("_id", swiper);
       Document update;
       if (isLike) {
         update = new Document("$inc", new Document("numLikes", 1));
@@ -274,7 +279,7 @@ public class ConsumerRunnable implements Runnable {
         Set<Integer> swipeeRightSet = SwipeRecord.listSwipeeRight.get(swipee);
         if (swiperRightSet != null && swipeeRightSet != null && swiperRightSet.contains(swipee) && swipeeRightSet.contains(swiper)) {
           mutualMatches.computeIfAbsent(swiper, k -> new HashSet<>()).add(swipee);
-          mutualMatches.computeIfAbsent(swipee, k -> new HashSet<>()).add(swiper); //added by TA
+          mutualMatches.computeIfAbsent(swipee, k -> new HashSet<>()).add(swiper);
         }
       }
     }
@@ -294,7 +299,7 @@ public class ConsumerRunnable implements Runnable {
 //      }
 //    }
     for (Map.Entry<Integer, Set<Integer>> entry : mutualMatches.entrySet()) {
-      Document query = new Document("swiper", entry.getKey());
+      Document query = new Document("_id", entry.getKey());
       Document update = new Document("$addToSet", new Document("matchedSwipees", new Document("$each", entry.getValue())));
       matchesBulkOperations.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
     }
