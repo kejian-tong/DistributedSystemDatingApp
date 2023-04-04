@@ -41,6 +41,9 @@ public class GetThread implements Runnable {
     statsApi.getApiClient().setReadTimeout(readTimeout);
     statsApi.getApiClient().setBasePath("http://52.88.201.22:8080/assignment3_server_war");
 
+    long lastRequestTime = 0;
+    long batchStartTime = System.currentTimeMillis();
+
     while (running.get()) {
       for (int i = 0; i < 5; i++) {
         long start = System.currentTimeMillis();
@@ -69,14 +72,32 @@ public class GetThread implements Runnable {
           }
         }
 
-        long latency = System.currentTimeMillis() - start;
-        latencyStats.record(latency);
+        long requestTime = System.currentTimeMillis() - start;
+        latencyStats.record(requestTime);
+
+        long timeSinceLastRequest = System.currentTimeMillis() - lastRequestTime;
+        long sleepTime = Math.max(0, 200 - timeSinceLastRequest); // 1000ms / 5 = 200ms
+
+        try {
+          Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+
+        lastRequestTime = System.currentTimeMillis();
       }
-      try {
-        Thread.sleep(200);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+
+      long batchTime = System.currentTimeMillis() - batchStartTime;
+
+      if (batchTime < 1000) {
+        try {
+          Thread.sleep(1000 - batchTime);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
       }
+      batchStartTime = System.currentTimeMillis();
     }
   }
 }
+
