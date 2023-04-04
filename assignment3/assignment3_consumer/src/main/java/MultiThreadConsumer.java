@@ -11,32 +11,27 @@ import com.rabbitmq.client.ConnectionFactory;
 
 public class MultiThreadConsumer {
   private static Integer NUM_PER_THREADS = Constant.NUM_PER_THREADS;
-  // Create a single MongoClient instance and share it across threads
-  // each thread will have its own connection to the database
   private static MongoClient mongoClient; // MongoDB client is thread safe and it's recommended to share one instance across threads
 
 
   public static void main (String[] args) throws IOException, TimeoutException {
     // Set up MongoDB URI
-    String uri = "mongodb://admin:admin@34.218.229.151:27017/?maxPoolSize=100"; // TODO: ec2 mongodb public ip
+    String uri = "mongodb://admin:admin@35.86.112.85:27017/?maxPoolSize=100"; // TODO: ec2 mongodb public ip
     // Create MongoDB client
     if(mongoClient == null) {
       MongoClientURI mongoClientURI = new MongoClientURI(uri);
       mongoClient = new MongoClient(mongoClientURI);
     }
 
-
     // Get MongoDB database for each thread
     ExecutorService executorService = Executors.newFixedThreadPool(Constant.NUM_PER_THREADS);
 
     for(int i = 0; i < NUM_PER_THREADS; i++) {
       MongoDatabase database = mongoClient.getDatabase("admin");
-
       // Check if collections exist before creating them
       if (!collectionExists(database, "matches")) {
         database.createCollection("matches");
       }
-
       if (!collectionExists(database, "stats")) {
         database.createCollection("stats");
       }
@@ -51,7 +46,8 @@ public class MultiThreadConsumer {
 
       executorService.execute(new ConsumerRunnable(connection, database));
     }
-
+//    executorService.shutdown();
+//    mongoClient.close();
     // Close the connection
     while (!executorService.isShutdown()) {
     }

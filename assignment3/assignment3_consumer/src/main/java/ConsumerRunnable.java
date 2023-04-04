@@ -1,9 +1,10 @@
 import com.google.gson.Gson;
-import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -24,14 +25,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 public class ConsumerRunnable implements Runnable {
 
   private final Connection connection;
   private final MongoDatabase database;
   private final int batchSize = 100;
-  private final int threadPoolSize = 30;
+  private final int threadPoolSize = 40; // previously is 30
   private final AtomicInteger processedMessageCount = new AtomicInteger(0);
+  private final List<Document> swipeBatch = new ArrayList<>();
 
   private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
       threadPoolSize, // corePoolSize
@@ -41,13 +44,19 @@ public class ConsumerRunnable implements Runnable {
       new LinkedBlockingQueue<>()
   );
 
-  //  private final Queue<Document> swipeBatch = new ConcurrentLinkedQueue<>();
-  private final List<Document> swipeBatch = new ArrayList<>();
-
   public ConsumerRunnable(Connection connection, MongoDatabase database) {
     this.connection = connection;
     this.database = database;
+//    this.matchesCollection = database.getCollection("matches");
+//    this.statsCollection = database.getCollection("stats");
+//    createIndexCollections();
   }
+
+  // create index for collections
+//  private void createIndexCollections() {
+//    matchesCollection.createIndex(new Document("_id", 1));
+//    statsCollection.createIndex(new Document("_id", 1));
+//  }
 
   @Override
   public void run() {
@@ -63,19 +72,8 @@ public class ConsumerRunnable implements Runnable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-//    // Timer to periodically flush remaining events in the batch
-//    Timer timer = new Timer();
-//    timer.schedule(new TimerTask() {
-//      @Override
-//      public void run() {
-//        flushBatch(swipeBatch);
-//      }
-//    }, flushInterval, flushInterval);
-//    System.out.println("Thread name is: " + Thread.currentThread().getName()); // TODO: to check if multiple threads are indeed being created and executed
 
     DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-//      String threadName = Thread.currentThread().getName();
-//      System.out.println("Received message on thread: " + threadName);
 
       String message = new String(delivery.getBody(), "UTF-8");
       Gson gson = new Gson();
@@ -94,11 +92,9 @@ public class ConsumerRunnable implements Runnable {
 
       int currentCount = processedMessageCount.incrementAndGet();
 
-      // Check if the batch size reached 1000
+      // Check if the batch size reached 100
       if (swipeBatch.size() >= batchSize) {
         flushBatch(swipeBatch);
-        // ack the receipt and indicating the message can be removed from queue
-//        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), true);
       }
       // send ack after every batchSize processed msg
       if (currentCount % batchSize == 0) {
@@ -111,7 +107,6 @@ public class ConsumerRunnable implements Runnable {
       });
     } catch (IOException e) {
       Logger.getLogger(ConsumerRunnable.class.getName()).log(Level.SEVERE, null, e);
-      ;
     }
   }
 
@@ -125,137 +120,21 @@ public class ConsumerRunnable implements Runnable {
     }
   }
 
-  // this commented function is a previous one early than the 5.30 am code
-  //  private void processMatches(ConcurrentLinkedQueue<Document> batchToProcess) {
-//    // Update user stats and insert matches in a loop
-//    // Perform batch write to matches and stats collections
-//    MongoCollection<Document> matchesCollection = database.getCollection("matches");
-//    MongoCollection<Document> statsCollection = database.getCollection("stats");
-//    List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
-//    List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
-//    Map<Integer, List<Integer>> mutualMatches = new HashMap<>();
-//
-//    for (Document doc : batchToProcess) {
-//      int swiper = doc.getInteger("swiper");
-//      int swipee = doc.getInteger("swipee");
-//      boolean isLike = doc.getBoolean("isLike");
-//
-//      // Update user stats
-//      Document query = new Document("swiper", swiper);
-//      Document update;
-//      if (isLike) {
-//        update = new Document("$inc", new Document("numLikes", 1));
-//      } else {
-//        update = new Document("$inc", new Document("numDislikes", 1));
-//      }
-//      statsBulkOperations.add(
-//          new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
-//
-//      // Check for a mutual match and insert it if found
-//      if (isLike && swiper != swipee) {
-//        SwipeRecord.addToLikeMap(swiper, swipee, true);
-//        Set<Integer> swiperRightSet = SwipeRecord.listSwipeRight.get(swiper);
-//        Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
-//        if (swiperRightSet != null && swipeeRightSet != null && swiperRightSet.contains(swipee)
-//            && swipeeRightSet.contains(swiper)) {
-//          mutualMatches.computeIfAbsent(swiper, k -> new ArrayList<>()).add(swipee);
-//        }
-//      }
-//    }
-//
-//    // Combine mutual matches with the same swiper ID
-//    Map<Integer, List<Integer>> combinedMutualMatches = new HashMap<>();
-//    for (Map.Entry<Integer, List<Integer>> entry : mutualMatches.entrySet()) {
-//      combinedMutualMatches.merge(entry.getKey(), entry.getValue(), (oldList, newList) -> {
-//        oldList.addAll(newList);
-//        return oldList;
-//      });
-//    }
-//
-//    // Create bulk operations for the mutual matches
-//    for (Map.Entry<Integer, List<Integer>> entry : mutualMatches.entrySet()) {
-//      Document matchDocument = new Document("swiper", entry.getKey())
-//          .append("matchedSwipees", entry.getValue());
-//      matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
-//    }
-//
-//    if (!matchesBulkOperations.isEmpty()) {
-//      matchesCollection.bulkWrite(matchesBulkOperations);
-//    }
-//    if (!statsBulkOperations.isEmpty()) {
-//      statsCollection.bulkWrite(statsBulkOperations);
-//    }
-//  }
-
-  // comment for this time 5:30 am Mar 29 2023, this commented can work but has some issues
-//  private void processMatches(ConcurrentLinkedQueue<Document> batchToProcess) {
-//    // Update user stats and insert matches in a loop
-//    // Perform batch write to matches and stats collections
-//    MongoCollection<Document> matchesCollection = database.getCollection("matches");
-//    MongoCollection<Document> statsCollection = database.getCollection("stats");
-//    List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
-//    List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
-//    Map<Integer, Set<Integer>> mutualMatches = new HashMap<>();
-//
-//    for (Document doc : batchToProcess) {
-//      int swiper = doc.getInteger("swiper");
-//      int swipee = doc.getInteger("swipee");
-//      boolean isLike = doc.getBoolean("isLike");
-//
-//      // Update user stats
-//      Document query = new Document("swiper", swiper);
-//      Document update;
-//      if (isLike) {
-//        update = new Document("$inc", new Document("numLikes", 1));
-//      } else {
-//        update = new Document("$inc", new Document("numDislikes", 1));
-//      }
-//      statsBulkOperations.add(
-//          new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
-//
-//      // Check for a mutual match and insert it if found
-//      if (isLike && swiper != swipee) {
-//        SwipeRecord.addToLikeMap(swiper, swipee, true);
-//        Set<Integer> swiperRightSet = SwipeRecord.listSwipeRight.get(swiper);
-//        Set<Integer> swipeeRightSet = SwipeRecord.listSwipeRight.get(swipee);
-//        if (swiperRightSet != null && swipeeRightSet != null && swiperRightSet.contains(swipee)
-//            && swipeeRightSet.contains(swiper)) {
-//          mutualMatches.computeIfAbsent(swiper, k -> new HashSet<>()).add(swipee);
-//        }
-//      }
-//    }
-//
-//    // Create bulk operations for the mutual matches
-//    for (Map.Entry<Integer, Set<Integer>> entry : mutualMatches.entrySet()) {
-//      Document existingMatchDocument = matchesCollection.find(
-//          new Document("swiper", entry.getKey())).first();
-//      if (existingMatchDocument != null) {
-//        matchesCollection.updateOne(new Document("swiper", entry.getKey()),
-//            new Document("$addToSet",
-//                new Document("matchedSwipees", new Document("$each", entry.getValue()))));
-//      } else {
-//        Document matchDocument = new Document("swiper", entry.getKey())
-//            .append("matchedSwipees", new ArrayList<>(entry.getValue()));
-//        matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
-//      }
-//    }
-//
-//    if (!matchesBulkOperations.isEmpty()) {
-//      matchesCollection.bulkWrite(matchesBulkOperations);
-//    }
-//    if (!statsBulkOperations.isEmpty()) {
-//      statsCollection.bulkWrite(statsBulkOperations);
-//    }
-//  }
-
   private void processMatches(ConcurrentLinkedQueue<Document> batchToProcess) {
     // Update user stats and insert matches in a loop
     // Perform batch write to matches and stats collections
     MongoCollection<Document> matchesCollection = database.getCollection("matches");
     MongoCollection<Document> statsCollection = database.getCollection("stats");
+
+   // create index on "_id" field on matches and stats collections
+    matchesCollection.createIndex(new Document("_id", 1));
+    statsCollection.createIndex(new Document("_id", 1));
+
     List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
-    List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
+//    List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
+
     Map<Integer, Set<Integer>> mutualMatches = new HashMap<>();
+    Map<Integer, int[]> statsMap = new HashMap<>();
 
     for (Document doc : batchToProcess) {
       int swiper = doc.getInteger("swiper");
@@ -263,14 +142,12 @@ public class ConsumerRunnable implements Runnable {
       boolean isLike = doc.getBoolean("isLike");
 
       // Update user stats
-      Document query = new Document("_id", swiper);
-      Document update;
+      int[] stats = statsMap.computeIfAbsent(swiper, k -> new int[]{0, 0});
       if (isLike) {
-        update = new Document("$inc", new Document("numLikes", 1));
+        stats[0]++;
       } else {
-        update = new Document("$inc", new Document("numDislikes", 1));
+        stats[1]++;
       }
-      statsBulkOperations.add(new UpdateOneModel<>(query, update, new UpdateOptions().upsert(true)));
 
       // Check for a mutual match and insert it if found
       if (isLike && swiper != swipee) {
@@ -284,20 +161,6 @@ public class ConsumerRunnable implements Runnable {
       }
     }
 
-    // Create bulk operations for the mutual matches and update the matches collection - commented on Mar39 11.38 am
-//    for (Map.Entry<Integer, Set<Integer>> entry : mutualMatches.entrySet()) {
-//      Document existingMatch = matchesCollection.find(new Document("swiper", entry.getKey())).first();
-//      if (existingMatch != null) {
-//        // Update existing document with new matches
-//        Document updateMatch = new Document("$addToSet", new Document("matchedSwipees", new Document("$each", entry.getValue())));
-//        matchesCollection.updateOne(new Document("_id", existingMatch.getObjectId("_id")), updateMatch);
-//      } else {
-//        // Insert a new document with the matches
-//        Document matchDocument = new Document("swiper", entry.getKey())
-//            .append("matchedSwipees", new ArrayList<>(entry.getValue()));
-//        matchesBulkOperations.add(new InsertOneModel<>(matchDocument));
-//      }
-//    }
     for (Map.Entry<Integer, Set<Integer>> entry : mutualMatches.entrySet()) {
       Document query = new Document("_id", entry.getKey());
       Document update = new Document("$addToSet", new Document("matchedSwipees", new Document("$each", entry.getValue())));
@@ -307,8 +170,42 @@ public class ConsumerRunnable implements Runnable {
     if (!matchesBulkOperations.isEmpty()) {
       matchesCollection.bulkWrite(matchesBulkOperations);
     }
-    if (!statsBulkOperations.isEmpty()) {
-      statsCollection.bulkWrite(statsBulkOperations);
+//    if (!statsBulkOperations.isEmpty()) {
+//      statsCollection.bulkWrite(statsBulkOperations);
+//    }
+    updateStatsCollection(statsCollection, statsMap);
+  }
+
+  private void updateStatsCollection(MongoCollection<Document> collection, Map<Integer, int[]> statsMap) {
+    List<WriteModel<Document>> bulkOps = new ArrayList<>();
+
+    for (Map.Entry<Integer, int[]> entry : statsMap.entrySet()) {
+      Integer swiperId = entry.getKey();
+      int[] stats = entry.getValue();
+      int numLikes = stats[0];
+      int numDislikes = stats[1];
+
+      Bson filter = Filters.eq("_id", swiperId);
+      // creates an update operation that sets the "numLikes" and "numDislikes" fields to 0 if the document doesn't exist yet (using setOnInsert)
+      Bson insertIfAbsent = Updates.combine(Updates.setOnInsert("numLikes", 0),
+          Updates.setOnInsert("numDislikes", 0));
+      // creates an update operation that increments the "numLikes" and "numDislikes" fields by the corresponding values in likes and dislikes variables
+      Bson incUpdate = Updates.combine(
+          Updates.inc("numLikes", numLikes),
+          Updates.inc("numDislikes", numDislikes));
+
+      UpdateOneModel<Document> insertIfAbsentModel = new UpdateOneModel<>(filter, insertIfAbsent,
+          new UpdateOptions().upsert(true));
+      // This means that if no document matches the filter, no new document will be inserted.
+      UpdateOneModel<Document> incUpdateModel = new UpdateOneModel<>(filter, incUpdate,
+          new UpdateOptions().upsert(false));
+
+      bulkOps.add(insertIfAbsentModel);
+      bulkOps.add(incUpdateModel);
+    }
+
+    if (!bulkOps.isEmpty()) {
+      collection.bulkWrite(bulkOps);
     }
   }
 }
