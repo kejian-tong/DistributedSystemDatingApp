@@ -27,7 +27,7 @@ public class MatchesServlet extends HttpServlet {
   public void init() throws ServletException{
     super.init();
     try {
-      String uri = "mongodb://admin:admin@34.218.229.151:27017/?maxPoolSize=100"; // TODO: ec2 mongodb public ip
+      String uri = "mongodb://admin:admin@35.86.112.85:27017/?maxPoolSize=150"; // TODO: ec2 mongodb public ip
       // Create MongoDB client
       if(mongoClient == null) {
         MongoClientURI mongoClientURI = new MongoClientURI(uri);
@@ -91,7 +91,7 @@ public class MatchesServlet extends HttpServlet {
   private void fetchMatches(MongoCollection<Document> collection, Integer swiperId,
       ResponseMsg responseMsg, HttpServletResponse res)
       throws IOException {
-    Document doc = collection.find(eq("swiper", swiperId)).first();
+    Document doc = collection.find(eq("_id", swiperId)).first();
 
     if (doc == null) {
       responseMsg.setMessage("User Not Found");

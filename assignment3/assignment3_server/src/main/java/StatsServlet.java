@@ -6,11 +6,13 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import java.io.IOException;
+import java.time.format.SignStyle;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.swing.plaf.nimbus.State;
 import org.bson.Document;
 import com.mongodb.MongoClient;
 
@@ -24,7 +26,7 @@ public class StatsServlet extends HttpServlet {
   public void init() throws ServletException{
     super.init();
     try {
-      String uri = "mongodb://admin:admin@34.218.229.151:27017/?maxPoolSize=100"; // ec2 mongodb public ip
+      String uri = "mongodb://admin:admin@35.86.112.85:27017/?maxPoolSize=150"; // ec2 mongodb public ip
       // Create MongoDB client
       if(mongoClient == null) {
         MongoClientURI mongoClientURI = new MongoClientURI(uri);
@@ -89,7 +91,8 @@ public class StatsServlet extends HttpServlet {
   private void fetchStats(MongoCollection<Document> collection, Integer swiperId,
       ResponseMsg responseMsg, HttpServletResponse res)
       throws IOException {
-    Document doc = collection.find(eq("swiper", swiperId)).first();
+    Document doc = collection.find(eq("_id", swiperId)).first();
+
 
     if (doc == null) {
       responseMsg.setMessage("User Not Found");
@@ -98,9 +101,22 @@ public class StatsServlet extends HttpServlet {
       res.getOutputStream().flush();
       System.out.println("User Not Found:" + swiperId);
     } else {
+//      Object likesRes = doc.get("numLikes");
+//      Object dislikesRes = doc.get("numDislikes");
       int likes = doc.getInteger("numLikes");
       int dislikes = doc.getInteger("numDislikes");
       Stats stats = new Stats().numLikes(likes).numDislikes(dislikes);
+//      Stats stats;
+//      // handle error like 500
+//      if (likesRes != null && dislikesRes !=null) {
+//        stats = new Stats().numLikes((Integer) (likesRes)).numDislikes((Integer)(dislikesRes));
+//      }
+//      else if (likesRes!=null) {
+//        stats = new Stats().numLikes((Integer) (likesRes)).numDislikes(0);
+//      } else{
+//          stats = new Stats().numLikes(0).numDislikes(0);
+//        }
+
       res.setStatus(HttpServletResponse.SC_OK);
       res.getWriter().print(gson.toJson(stats));
       res.getWriter().flush();

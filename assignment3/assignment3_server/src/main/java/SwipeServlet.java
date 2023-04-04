@@ -26,7 +26,7 @@ public class SwipeServlet extends HttpServlet {
     try {
       ConnectionFactory factory = new ConnectionFactory();
 //      factory.setHost("localhost");
-      factory.setHost("35.160.135.143"); // TODO: ec2 RMQ, need to be updated every time and deploy to ec2
+      factory.setHost("18.236.129.161"); // TODO: ec2 RMQ, need to be updated every time and deploy to ec2
       factory.setVirtualHost("cherry_broker"); // added ec2 RMQ vhost
       factory.setPort(5672);
       factory.setUsername("admin");
@@ -127,7 +127,7 @@ public class SwipeServlet extends HttpServlet {
   private boolean validSwiper(String swiper) {
     try {
       int swiperId = Integer.parseInt(swiper);
-      if (swiperId < 1 || swiperId > 5000 || !isValidNumber(swiper)) {
+      if (swiperId < 1 || swiperId > 50000 || !isValidNumber(swiper)) {
         return false;
       }
       return true;
@@ -140,7 +140,7 @@ public class SwipeServlet extends HttpServlet {
   private boolean validSwipee(String swipee) {
     try {
       int swipeeId = Integer.parseInt(swipee);
-      if (swipeeId < 1 || swipeeId > 1000000 || !isValidNumber(swipee)) {
+      if (swipeeId < 1 || swipeeId > 50000 || !isValidNumber(swipee)) {
         return false;
       }
       return true;
