@@ -12,11 +12,11 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class GetThread extends Thread implements Runnable {
+public class GetThread implements Runnable {
 
   private LatencyStats latencyStats;
   private final Random random = new Random();
-  private String userID = String.valueOf(ThreadLocalRandom.current().nextInt(1, 5001));
+  private String userID = String.valueOf(ThreadLocalRandom.current().nextInt(1, 50001));
   private AtomicBoolean running;
   private final int maxAttempts = 5;
 
@@ -35,16 +35,16 @@ public class GetThread extends Thread implements Runnable {
 
     matchesApi.getApiClient().setConnectTimeout(connectionTimeout);
     matchesApi.getApiClient().setReadTimeout(readTimeout);
-    matchesApi.getApiClient().setBasePath("http://35.91.149.233:8080/GetServlet_war");
+    matchesApi.getApiClient().setBasePath("http://52.88.201.22:8080/assignment3_server_war");
 
     statsApi.getApiClient().setConnectTimeout(connectionTimeout);
     statsApi.getApiClient().setReadTimeout(readTimeout);
-    statsApi.getApiClient().setBasePath("http://35.91.149.233:8080/GetServlet_war");
+    statsApi.getApiClient().setBasePath("http://52.88.201.22:8080/assignment3_server_war");
 
     while (running.get()) {
       for (int i = 0; i < 5; i++) {
         long start = System.currentTimeMillis();
-        userID = String.valueOf(ThreadLocalRandom.current().nextInt(1, 5001));
+        userID = String.valueOf(ThreadLocalRandom.current().nextInt(1, 50001));
         boolean success = false;
         int attempts = 0;
 
@@ -54,15 +54,13 @@ public class GetThread extends Thread implements Runnable {
               ApiResponse<Matches> res = matchesApi.matchesWithHttpInfo(userID);
             } else {
               ApiResponse<MatchStats> response = statsApi.matchStatsWithHttpInfo(userID);
+
             }
             success = true;
           } catch (ApiException e) {
-            System.out.println(e.getCode() + e.getMessage() + "1");
             if(e.getCode() == 400 || e.getCode() == 404) {
-              System.out.println(e.getCode() + e.getMessage() + "2");
               success = true;
             } else {
-              System.out.println(e.getCode() + e.getMessage() + "3");
               attempts++;
               if (attempts >= maxAttempts) {
                 throw new RuntimeException(e);

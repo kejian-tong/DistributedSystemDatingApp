@@ -18,10 +18,11 @@ public class LatencyStats {
   public void printStats() {
     long min = minLatency;
     long max = maxLatency;
-    double mean = (double) totalLatency.sum() / count.sum();
+    double mean = Math.round((double) totalLatency.sum() / count.sum());
 
-    System.out.println("Get Min latency: " + min + " ms");
-    System.out.println("Get Mean latency: " + mean + " ms");
-    System.out.println("Get Max latency: " + max + " ms");
+    System.out.println("\n====== GET requests results ======\n");
+    System.out.println("Min latency: " + min + " ms");
+    System.out.println("Mean latency: " + mean + " ms");
+    System.out.println("Max latency: " + max + " ms");
   }
 }
