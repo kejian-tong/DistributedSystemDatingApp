@@ -131,7 +131,6 @@ public class ConsumerRunnable implements Runnable {
     statsCollection.createIndex(new Document("_id", 1));
 
     List<WriteModel<Document>> matchesBulkOperations = new ArrayList<>();
-//    List<WriteModel<Document>> statsBulkOperations = new ArrayList<>();
 
     Map<Integer, Set<Integer>> mutualMatches = new HashMap<>();
     Map<Integer, int[]> statsMap = new HashMap<>();
@@ -170,9 +169,6 @@ public class ConsumerRunnable implements Runnable {
     if (!matchesBulkOperations.isEmpty()) {
       matchesCollection.bulkWrite(matchesBulkOperations);
     }
-//    if (!statsBulkOperations.isEmpty()) {
-//      statsCollection.bulkWrite(statsBulkOperations);
-//    }
     updateStatsCollection(statsCollection, statsMap);
   }
 
