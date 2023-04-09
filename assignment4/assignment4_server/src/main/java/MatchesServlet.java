@@ -33,7 +33,9 @@ public class MatchesServlet extends HttpServlet {
   public void init() throws ServletException{
     super.init();
     try {
-      String uri = "mongodb://admin:admin@35.86.112.85:27017/?maxPoolSize=150"; // TODO: ec2 mongodb public ip
+//      String uri = "mongodb://172.31.21.114:27017/?maxPoolSize=150"; // TODO: ec2 mongodb private ip
+      String uri = "mongodb://54.213.234.231:27017/?maxPoolSize=150"; // TODO: ec2 mongodb private ip
+
       // Create MongoDB client
       if(mongoClient == null) {
         MongoClientURI mongoClientURI = new MongoClientURI(uri);
@@ -47,7 +49,9 @@ public class MatchesServlet extends HttpServlet {
     JedisPoolConfig poolConfig = new JedisPoolConfig();
     poolConfig.setMaxTotal(200);
     poolConfig.setMaxIdle(100);
-    jedisPool = new JedisPool(poolConfig, "ec2_ip_address"); // TODO: replace redis ec2 ip
+//    jedisPool = new JedisPool(poolConfig, "172.31.31.79"); // TODO: replace redis private ec2 ip
+    jedisPool = new JedisPool(poolConfig, "52.24.41.38"); // TODO: replace redis private ec2 ip
+
   }
 
   @Override
