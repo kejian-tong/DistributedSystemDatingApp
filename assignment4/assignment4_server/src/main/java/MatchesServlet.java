@@ -5,9 +5,6 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +15,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.bson.Document;
 import com.mongodb.MongoClient;
-import reactor.core.publisher.Mono;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 
 @WebServlet(name = "MatchesServlet", value = "/MatchesServlet")
@@ -26,12 +25,9 @@ public class MatchesServlet extends HttpServlet {
   private MongoClient mongoClient;
   private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
   private final static int MAX_SIZE = 100; // returned 100 matches users
+  // Redis related variables
+  private JedisPool jedisPool;
   private final static int REDIS_KEY_EXPIRATION_SECONDS = 60; // 60 seconds
-
-  // added redis part
-  private RedisClient redisClient;
-  private StatefulRedisConnection<String, String> connection;
-  private RedisReactiveCommands<String, String> redisCommands;
 
   @Override
   public void init() throws ServletException{
@@ -47,17 +43,19 @@ public class MatchesServlet extends HttpServlet {
     } catch (MongoException me) {
       System.err.println("Cannot create MongoClient for MatchesServlet: " + me);
     }
-
-    // Initialize RedisClient, connection, and reactive commands
-    redisClient = RedisClient.create("redis://ec2_ip_address"); // TODO: replace redis ec2 ip
-    connection = redisClient.connect();
-    redisCommands = connection.reactive();
+    // Initialize Jedis pool
+    JedisPoolConfig poolConfig = new JedisPoolConfig();
+    poolConfig.setMaxTotal(200);
+    poolConfig.setMaxIdle(100);
+    jedisPool = new JedisPool(poolConfig, "ec2_ip_address"); // TODO: replace redis ec2 ip
   }
 
   @Override
   public void destroy() {
-    connection.close();
-    redisClient.shutdown(); // release any resources associated with the client
+    jedisPool.close(); // release any resources associated with the pool
+    if (mongoClient != null) {
+      mongoClient.close();
+    }
     super.destroy();
   }
 
@@ -111,69 +109,127 @@ public class MatchesServlet extends HttpServlet {
     return true;
   }
 
+
+//  private void fetchMatches(MongoCollection<Document> collection, Integer swiperId,
+//      ResponseMsg responseMsg, HttpServletResponse res)
+//      throws IOException {
+//    String redisKey = "user_matches:" + swiperId;
+//
+//    try (Jedis jedis = jedisPool.getResource()) {
+//      String matchesJson = jedis.get(redisKey);
+//
+//      if (matchesJson == null) {
+//        Document doc = collection.find(eq("_id", swiperId)).first();
+//
+//        if (doc == null) {
+//          responseMsg.setMessage("User Not Found");
+//          res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+//          res.getOutputStream().print(gson.toJson(responseMsg));
+//          res.getOutputStream().flush();
+//        } else {
+//          List<String> matchesList = doc.getList("matchedSwipees", Integer.class).stream()
+//              .map(String::valueOf).collect(Collectors.toList());
+//
+//          // Limit the size of the matchesList after fetching from MongoDB and before storing in Redis
+//          if (matchesList.size() > MAX_SIZE) {
+//            matchesList = matchesList.subList(0, MAX_SIZE);
+//          }
+//
+//          Matches matches = new Matches(matchesList);
+//          matchesJson = gson.toJson(matches);
+//          jedis.setex(redisKey, REDIS_KEY_EXPIRATION_SECONDS, matchesJson);
+//          sendMatchesResponse(matches, swiperId, responseMsg, res);
+//        }
+//      } else {
+//        Matches matches = gson.fromJson(matchesJson, Matches.class);
+//        sendMatchesResponse(matches, swiperId, responseMsg, res);
+//      }
+//    } catch (Exception e) {
+//      System.err.println("Error fetching matches from Redis: " + e);
+//      // Fall back to fetching from MongoDB
+//      Document doc = collection.find(eq("_id", swiperId)).first();
+//
+//      if (doc == null) {
+//        responseMsg.setMessage("User Not Found");
+//        res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+//        res.getOutputStream().print(gson.toJson(responseMsg));
+//        res.getOutputStream().flush();
+//      } else {
+//        List<String> matchesList = doc.getList("matchedSwipees", Integer.class).stream()
+//            .map(String::valueOf).collect(Collectors.toList());
+//
+//        // Limit the size of the matchesList after fetching from MongoDB and before storing in Redis
+//        if (matchesList.size() > MAX_SIZE) {
+//          matchesList = matchesList.subList(0, MAX_SIZE);
+//        }
+//
+//        Matches matches = new Matches(matchesList);
+//        responseMsg.setMessage("Get user matches successfully: " + swiperId);
+//        res.setStatus(HttpServletResponse.SC_OK);
+//        res.getWriter().print(gson.toJson(matches));
+//        res.getWriter().flush();
+//      }
+//    }
+//  }
+
   private void fetchMatches(MongoCollection<Document> collection, Integer swiperId,
       ResponseMsg responseMsg, HttpServletResponse res)
       throws IOException {
-//    Document doc = collection.find(eq("_id", swiperId)).first();
     String redisKey = "user_matches:" + swiperId;
-    redisCommands.get(redisKey)
-        .switchIfEmpty(Mono.defer(
-            () -> { // if key not found in redis, create a deferred calc that fetch data from mongodb
-              Document doc = collection.find(eq("_id", swiperId)).first();
 
-              if (doc == null) {
-                return AbstractGetMono.getMono(responseMsg, res, gson);
-              } else {
-                List<String> matchesList = doc.getList("matchedSwipees", Integer.class).stream()
-                    .map(String::valueOf).collect(
-                        Collectors.toList());
+    try (Jedis jedis = jedisPool.getResource()) {
+      String matchesJson = jedis.get(redisKey);
 
-                // Limit the size of the matchesList after fetching from MongoDB and before storing in Redis
-                if (matchesList.size() > MAX_SIZE) {
-                  matchesList = matchesList.subList(0, MAX_SIZE);
-                }
-                Matches matches = new Matches(matchesList);
-                String matchesJson = gson.toJson(matches);
+      if (matchesJson == null) {
+        Document doc = collection.find(eq("_id", swiperId)).first();
+        if (doc == null) {
+          sendNotFoundResponse("User Not Found", responseMsg, res);
+          return;
+        }
+        matchesJson = getMatchesJsonFromMongo(doc);
+        // Store the matches JSON in Redis for future requests (used for caching)
+        jedis.setex(redisKey, REDIS_KEY_EXPIRATION_SECONDS, matchesJson);
+      }
 
-                return redisCommands.set(redisKey, matchesJson) // store json string in redis cache
-                    .then(redisCommands.expire(redisKey, REDIS_KEY_EXPIRATION_SECONDS))
-                    .thenReturn(matchesJson);
-              }
-            }))
-        .doOnNext(matchesJson -> { // when the data is available, use `doOnNext` to perform data
-          Matches matches = gson.fromJson(matchesJson, Matches.class);
-          try {
-            sendMatchesResponse(matches, swiperId, responseMsg, res);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        })
-        .onErrorResume(e -> { // Handle any errors that occur during processing
-          System.err.println("Error fetching matches: " + e);
-          res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-          return Mono.empty();
-        })
-        .block(); // block the thread until the result is returned
+      Matches matches = gson.fromJson(matchesJson, Matches.class);
+      sendMatchesResponse(matches, swiperId, responseMsg, res);
+    } catch (Exception e) {
+      System.err.println("Error fetching matches from Redis: " + e);
+      fallbackToMongo(collection, swiperId, responseMsg, res);
+    }
   }
 
-//    if (doc == null) {
-//      responseMsg.setMessage("User Not Found");
-//      res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-//      res.getOutputStream().print(gson.toJson(responseMsg));
-//      res.getOutputStream().flush();
-////      System.out.println("User Not Found:" + swiperId);
-//    } else {
-//      // create a stream of matchedSwipees and convert to string list and collect the resulting String objects into a list
-//      List<String> matchesList = doc.getList("matchedSwipees", Integer.class).stream().map(String::valueOf).collect(
-//          Collectors.toList());
-//      if(matchesList.size() > MAX_SIZE) {
-//        matchesList = matchesList.subList(0, MAX_SIZE);
-//      }
-//      Matches matches = new Matches(matchesList);
-//      responseMsg.setMessage("get user matches successfully" + swiperId);
-//      res.setStatus(HttpServletResponse.SC_OK);
-//      res.getWriter().print(gson.toJson(matches));
-//      res.getWriter().flush();
+  private String getMatchesJsonFromMongo(Document doc) {
+    List<String> matchesList = doc.getList("matchedSwipees", Integer.class).stream()
+        .map(String::valueOf).collect(Collectors.toList());
+
+    if (matchesList.size() > MAX_SIZE) {
+      matchesList = matchesList.subList(0, MAX_SIZE);
+    }
+
+    Matches matches = new Matches(matchesList);
+    return gson.toJson(matches);
+  }
+
+  private void fallbackToMongo(MongoCollection<Document> collection, Integer swiperId, ResponseMsg responseMsg,
+      HttpServletResponse res) throws IOException {
+    Document doc = collection.find(eq("_id", swiperId)).first();
+
+    if (doc == null) {
+      sendNotFoundResponse("User Not Found", responseMsg, res);
+    } else {
+      String matchesJson = getMatchesJsonFromMongo(doc);
+      Matches matches = gson.fromJson(matchesJson, Matches.class);
+      sendMatchesResponse(matches, swiperId, responseMsg, res);
+    }
+  }
+
+  private void sendNotFoundResponse(String message, ResponseMsg responseMsg, HttpServletResponse res) throws IOException {
+    responseMsg.setMessage(message);
+    res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    res.getOutputStream().print(gson.toJson(responseMsg));
+    res.getOutputStream().flush();
+  }
 
   // send matches responses to the client after successfully fetch matches data
   private void sendMatchesResponse(Matches matches, Integer swiperId, ResponseMsg responseMsg, HttpServletResponse res)
