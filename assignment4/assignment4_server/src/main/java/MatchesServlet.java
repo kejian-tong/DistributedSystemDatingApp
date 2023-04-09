@@ -26,7 +26,7 @@ public class MatchesServlet extends HttpServlet {
   private MongoClient mongoClient;
   private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
   private final static int MAX_SIZE = 100; // returned 100 matches users
-  private final static int REDIS_KEY_EXPIRATION_SECONDS = 300; // 300 seconds
+  private final static int REDIS_KEY_EXPIRATION_SECONDS = 60; // 60 seconds
 
   // added redis part
   private RedisClient redisClient;
@@ -49,7 +49,7 @@ public class MatchesServlet extends HttpServlet {
     }
 
     // Initialize RedisClient, connection, and reactive commands
-    redisClient = RedisClient.create("redis://localhost"); // TODO: replace redis ec2 ip
+    redisClient = RedisClient.create("redis://ec2_ip_address"); // TODO: replace redis ec2 ip
     connection = redisClient.connect();
     redisCommands = connection.reactive();
   }
@@ -147,6 +147,11 @@ public class MatchesServlet extends HttpServlet {
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
+        })
+        .onErrorResume(e -> { // Handle any errors that occur during processing
+          System.err.println("Error fetching matches: " + e);
+          res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+          return Mono.empty();
         })
         .block(); // block the thread until the result is returned
   }
