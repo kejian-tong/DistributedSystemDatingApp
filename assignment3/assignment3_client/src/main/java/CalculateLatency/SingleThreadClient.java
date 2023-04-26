@@ -20,7 +20,8 @@ public class SingleThreadClient implements Runnable {
 //    private  String basePath = "http://localhost:8080/assignment1_server_war_exploded";
 //  private String basePath = "http://34.212.214.202:8080/PostServlet_war"; // TODO: Replace ec2 tomcat ip
 //  private String basePath = "http://34.216.137.133:8080/assignment1SpringBoot-0.0.1-SNAPSHOT";
-  private String basePath = "http://52.88.201.22:8080/assignment3_server_war";
+  private String basePath = "http://52.24.58.125:8080/assignment4_server_war";
+//  private String basePath = "http://localhost:8080/assignment4_server_war_exploded";
   private CountDownLatch completed;
 
   public SingleThreadClient(int numOfReq, CountDownLatch completed, BlockingQueue<LatencyRecord> latencyRecord) {
@@ -41,8 +42,8 @@ public class SingleThreadClient implements Runnable {
       SwipeDetails body =  new SwipeDetails();
       // randomly get the data
       String leftorright = Module.swipe[new Random().nextInt(Module.swipe.length)];
-      body.setSwiper(String.valueOf(ThreadLocalRandom.current().nextInt(1, 50001)));
-      body.setSwipee(String.valueOf(ThreadLocalRandom.current().nextInt(1, 50001)));
+      body.setSwiper(String.valueOf(ThreadLocalRandom.current().nextInt(1, 501)));
+      body.setSwipee(String.valueOf(ThreadLocalRandom.current().nextInt(1, 501)));
       body.setComment(Module.comments[new Random().nextInt(Module.comments.length)]);
 
       for(int j = 0; j < Module.MAX_RE_TRY; j++) {

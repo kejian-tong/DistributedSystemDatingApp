@@ -16,7 +16,7 @@ public class MultiThreadConsumer {
 
   public static void main (String[] args) throws IOException, TimeoutException {
     // Set up MongoDB URI
-    String uri = "mongodb://admin:admin@35.86.112.85:27017/?maxPoolSize=100"; // TODO: ec2 mongodb public ip
+    String uri = "mongodb://172.31.21.114:27017/?maxPoolSize=100"; // TODO: ec2 mongodb public ip
     // Create MongoDB client
     if(mongoClient == null) {
       MongoClientURI mongoClientURI = new MongoClientURI(uri);

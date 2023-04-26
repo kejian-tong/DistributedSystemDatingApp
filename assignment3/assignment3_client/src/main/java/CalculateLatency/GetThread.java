@@ -35,11 +35,13 @@ public class GetThread implements Runnable {
 
     matchesApi.getApiClient().setConnectTimeout(connectionTimeout);
     matchesApi.getApiClient().setReadTimeout(readTimeout);
-    matchesApi.getApiClient().setBasePath("http://52.88.201.22:8080/assignment3_server_war");
+    matchesApi.getApiClient().setBasePath("http://52.24.58.125:8080/assignment4_server_war");
+//    matchesApi.getApiClient().setBasePath("http://localhost:8080/assignment4_server_war_exploded");
 
     statsApi.getApiClient().setConnectTimeout(connectionTimeout);
     statsApi.getApiClient().setReadTimeout(readTimeout);
-    statsApi.getApiClient().setBasePath("http://52.88.201.22:8080/assignment3_server_war");
+    statsApi.getApiClient().setBasePath("http://52.24.58.125:8080/assignment4_server_war");
+//    statsApi.getApiClient().setBasePath("http://localhost:8080/assignment4_server_war_exploded");
 
     long lastRequestTime = 0;
     long batchStartTime = System.currentTimeMillis();
