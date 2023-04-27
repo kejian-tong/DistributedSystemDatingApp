@@ -1,0 +1,26 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="StatsConsumer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/StatsConsumer_jar</output-path>
+    <root id="archive" name="StatsConsumer.jar">
+      <element id="module-output" name="StatsConsumer" />
+      <element id="module-output" name="Consumer" />
+      <element id="module-output" name="Config" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/luben/zstd-jni/1.4.9-1/zstd-jni-1.4.9-1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/xerial/snappy/snappy-java/1.1.8.1/snappy-java-1.1.8.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/mongodb/mongo-java-driver/3.12.10/mongo-java-driver-3.12.10.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/lz4/lz4-java/1.7.1/lz4-java-1.7.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/kafka/kafka-clients/2.8.2/kafka-clients-2.8.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-simple/1.7.36/slf4j-simple-1.7.36.jar" path-in-jar="/" />
+      <element id="library" level="project" name="Maven: com.github.luben:zstd-jni:1.4.9-1" />
+      <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.10.1" />
+      <element id="library" level="project" name="Maven: org.apache.kafka:kafka-clients:2.8.2" />
+      <element id="library" level="project" name="Maven: org.mongodb:mongo-java-driver:3.12.10" />
+      <element id="library" level="project" name="Maven: org.lz4:lz4-java:1.7.1" />
+      <element id="library" level="project" name="Maven: org.slf4j:slf4j-simple:1.7.36" />
+      <element id="library" level="project" name="Maven: org.slf4j:slf4j-api:1.7.36" />
+      <element id="library" level="project" name="Maven: org.xerial.snappy:snappy-java:1.1.8.1" />
+    </root>
+  </artifact>
+</component>

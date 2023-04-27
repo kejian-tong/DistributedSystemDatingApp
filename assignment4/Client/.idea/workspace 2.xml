@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="Client:jar" />
+    </artifacts-to-build>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="24066aba-cd7f-436c-81d2-619451cfcb9e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/part2latency/MainGetMatches.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/part2latency/MainGetStats.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/part2latency/MainPost.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/thread/GetMatchesThread.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/thread/GetStatsThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/META-INF/MANIFEST.MF" beforeDir="false" afterPath="$PROJECT_DIR$/META-INF/MANIFEST.MF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/config/LoadTestConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/LoadTestConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/part2latency/MainPart2.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/thread/GetThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/thread/GetThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Server/Config/src/main/java/assignment4.config/constant/KafkaConnectionInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/Config/src/main/java/assignment4.config/constant/KafkaConnectionInfo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Server/Config/src/main/java/assignment4.config/constant/MongoConnectionInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/Config/src/main/java/assignment4.config/constant/MongoConnectionInfo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Server/Config/src/main/java/assignment4.config/constant/RedisConnectionInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/Config/src/main/java/assignment4.config/constant/RedisConnectionInfo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Server/PostServlet/src/main/java/assignment4/postservlet/KafkaProducerFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/PostServlet/src/main/java/assignment4/postservlet/KafkaProducerFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Server/StatsServlet/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/StatsServlet/pom.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand />
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="useMavenConfig" value="true" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="2NGRpXb9mJPx7f3jkYvJeSsTJ2N" />
+  <component name="ProjectViewState">
+    <option name="foldersAlwaysOnTop" value="false" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/Users/cindychen/Documents/NEU/Course_Material/cs6650/Assignment4/Client",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Artifacts",
+    "project.structure.proportion": "0.15276933",
+    "project.structure.side.proportion": "0.27148998",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/java" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="part2latency" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.MainPost">
+    <configuration name="MainPost" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="part2latency.MainPost" />
+      <module name="Client" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="part2latency.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MatchesApiTest.matchesTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="Client" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="io.swagger.client.api.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="io.swagger.client.api" />
+      <option name="MAIN_CLASS_NAME" value="io.swagger.client.api.MatchesApiTest" />
+      <option name="METHOD_NAME" value="matchesTest" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.MainPost" />
+        <item itemvalue="JUnit.MatchesApiTest.matchesTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="24066aba-cd7f-436c-81d2-619451cfcb9e" name="Changes" comment="" />
+      <created>1679288616073</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1679288616073</updated>
+      <workItem from="1679288617767" duration="53000" />
+      <workItem from="1679289240856" duration="45067000" />
+      <workItem from="1680143013781" duration="8557000" />
+      <workItem from="1680206043947" duration="351000" />
+      <workItem from="1680206405801" duration="67000" />
+      <workItem from="1680206482999" duration="424000" />
+      <workItem from="1680206918271" duration="257000" />
+      <workItem from="1680207184532" duration="218000" />
+      <workItem from="1680208816827" duration="54322000" />
+      <workItem from="1681520445350" duration="23274000" />
+      <workItem from="1681692662742" duration="10040000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
