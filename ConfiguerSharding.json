@@ -1,0 +1,214 @@
+## configure server:
+
+mkdir -p shard/configsrv shard/configsrv1 shard/configsrv2
+
+nohup mongod --configsvr  --port 28041 --bind_ip localhost,ip-172-31-20-170.us-west-2.compute.internal --replSet config_repl --dbpath shard/configsrv &
+		
+nohup mongod --configsvr  --port 28042 --bind_ip localhost,ip-172-31-20-170.us-west-2.compute.internal --replSet config_repl --dbpath shard/configsrv1 &
+		 
+nohup mongod --configsvr  --port 28043 --bind_ip localhost,ip-172-31-20-170.us-west-2.compute.internal --replSet config_repl --dbpath shard/configsrv2 &
+		
+
+mongosh --host 172.31.20.170 --port 28041
+
+rsconf = {
+			  _id: "config_repl",
+			  members: [
+				{
+				 _id: 0,
+				 host: "ip-172-31-20-170.us-west-2.compute.internal:28041"
+				},
+				{
+				 _id: 1,
+				 host: "ip-172-31-20-170.us-west-2.compute.internal:28042"
+				},
+				{
+				 _id: 2,
+				 host: "ip-172-31-20-170.us-west-2.compute.internal:28043"
+				}
+			   ]
+			}
+
+##initiate the replica set using the config defined above:	
+	rs.initiate(rsconf)
+		
+## check the replica set status:
+rs.status()
+
+
+## shard server 1:
+
+mkdir -p shard/shardrep1 shard/shardrep2 shard/shardrep3 
+
+nohup mongod --shardsvr --port 28081 --bind_ip localhost,ip-172-31-23-224.us-west-2.compute.internal --replSet shard_repl --dbpath shard/shardrep1 &
+		
+nohup mongod --shardsvr --port 28082 --bind_ip localhost,ip-172-31-20-38.us-west-2.compute.internal --replSet shard_repl --dbpath shard/shardrep2 &
+			
+nohup mongod --shardsvr --port 28083 --bind_ip localhost,ip-172-31-19-70.us-west-2.compute.internal --replSet shard_repl --dbpath shard/shardrep3 &
+
+## Login to any of replica member to check the cluster status tot see if they're properly confiugred 
+mongosh --host 172.31.23.224  --port 28081
+
+rsconf = {
+			  _id: "shard_repl",
+			  members: [
+				{
+				 _id: 0,
+				 host: "ip-172-31-23-224.us-west-2.compute.internal:28081"
+				},
+				{
+				 _id: 1,
+				 host: "ip-172-31-20-38.us-west-2.compute.internal:28082"
+				},
+				{
+				 _id: 2,
+				 host: "ip-172-31-19-70.us-west-2.compute.internal:28083"
+				}
+			   ]
+			}
+
+rs.initiate(rsconf)
+## check the replica set status:
+rs.status()
+
+## same steps for shard server 2:
+
+mkdir -p shard/shard2rep1 shard/shard2rep2 shard/shard2rep3 
+
+nohup mongod --shardsvr --port 29081 --bind_ip localhost,ip-172-31-20-151.us-west-2.compute.internal --replSet shard2_repl --dbpath shard/shard2rep1 &
+		
+nohup mongod --shardsvr --port 29082 --bind_ip localhost,ip-172-31-23-59.us-west-2.compute.internal --replSet shard2_repl --dbpath shard/shard2rep2 &
+			
+nohup mongod --shardsvr --port 29083 --bind_ip localhost,ip-172-31-25-151.us-west-2.compute.internal --replSet shard2_repl --dbpath shard/shard2rep3 &
+
+# Connect to one of the replica set node (note down the IP address):
+mongosh --host 172.31.20.151  --port 29081
+
+rsconf = {
+	  _id: "shard2_repl",
+	  members: [
+		{
+		 _id: 0,
+		 host: "ip-172-31-20-151.us-west-2.compute.internal:29081"
+		},
+		{
+		 _id: 1,
+		 host: "ip-172-31-23-59.us-west-2.compute.internal:29082"
+		},
+		{
+		 _id: 2,
+		 host: "ip-172-31-25-151.us-west-2.compute.internal:29083"
+		}
+	   ]
+	}
+	rs.initiate(rsconf)
+	rs.status()
+
+
+## set up Mongos-1
+
+## Please remember to shutdown mongod on mongos ec2, then run the following mongos commands 
+The following command is connecting mongos to config server installed on AWS EC2 instance.
+nohup mongos --configdb config_repl/ip-172-31-20-170.us-west-2.compute.internal:28041,ip-172-31-20-170.us-west-2.compute.internal:28042,ip-172-31-20-170.us-west-2.compute.internal:28043 --bind_ip localhost,ip-172-31-22-161.us-west-2.compute.internal &
+
+# Add shard ( all the following commands are to be executed from the mongos instance)
+mongosh --host localhost --port 27017
+
+sh.addShard("shard_repl/ip-172-31-23-224.us-west-2.compute.internal:28081,ip-172-31-20-38.us-west-2.compute.internal:28082,ip-172-31-19-70.us-west-2.compute.internal:28083")
+sh.addShard("shard2_repl/ip-172-31-20-151.us-west-2.compute.internal:29081,ip-172-31-23-59.us-west-2.compute.internal:29082,ip-172-31-25-151.us-west-2.compute.internal:29083")
+sh.status()
+
+
+
+### enable sharding
+
+sh.enableSharding("twinder")  --- twinder is database name 
+
+db.adminCommand(
+   {
+     enableSharding: "twinder"
+   }
+)
+
+
+### update chunk size - default chunk size is 64 MB, change it to some other value:
+use config
+	
+db.settings.updateOne(
+   { _id: "chunksize" },
+   { $set: { _id: "chunksize", value: 1 } },
+   { upsert: true }
+)
+
+
+
+## set secondaryPreferred
+## We can also set read preference in String uri db.getMongo().setReadPref() or readPreference in the connection string
+
+db.getMongo().setReadPref('secondaryPreferred')
+
+## check the read preference: 
+[direct: mongos] admin> print(db.getMongo().getReadPrefMode());
+secondaryPreferred
+
+
+## Set sharding on collecitons and choose sharding key
+
+
+sh.enableSharding("twinder") --- still doesn't show partitioned on database : false 
+/**
+ * Since the collection is sharded, the partitioned flag for the "twinder" database should now be set to "true". 
+ * However, the output shows that the "twinder" database still has "partitioned: false". This may be a bug in the 
+ * MongoDB shell or a temporary inconsistency in the system metadata. You can try running the sh.status() command 
+ * again after a few minutes to see if the flag has been updated. --By chatGPT
+ * 
+ * 
+ * */
+// enable sharding on a collection 
+sh.shardCollection("twinder.Matches");
+				
+Test with collection 1:
+	sh.shardCollection("twinder.Matches", { _id : "hashed" } )
+	sh.shardCollection("twinder.Stats", { _id : "hashed" } )
+	sh.status()
+	
+
+## check the data distribution:
+db.matches.getShardDistribution()
+use twinder
+db.Stats.getShardDistribution() ## use this one to check 
+db.Matches.getShardDistribution() 	
+sh.balancerCollectionStatus("twinder.Matches")  # for version 4.4	
+
+
+=========setup second mongos in a seperated ec2 instance =========
+
+mongodb://mongos1_hostname:<mongos1_port>,mongos2_hostname:<mongos2_port>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
