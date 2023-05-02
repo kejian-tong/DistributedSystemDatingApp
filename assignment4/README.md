@@ -1,5 +1,6 @@
 # CS6650 Spring 2023  Assignment 4
 
+## Major team member: Kejian Tong, Chuan-Hsin Chen
 ## Let's Build the CQRS Patern
 
 We're going to explore a standard architecture pattern for handling mixed workloads. It's called the CQRS Pattern. Check out [this article](https://blog.bitsrc.io/how-i-redesigned-the-backend-to-quickly-handle-millions-of-reads-and-writes-58cfe989e6f8) for an explanation. 
