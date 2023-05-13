@@ -70,8 +70,8 @@ In conclusion, we have successfully optimized our system through various approac
 ## Acknowledgements
 - The project drew inspiration and guidance from various resources, including online tutorials, research papers, and discussions within the development community.
 - We would like to express our gratitude to the authors and contributors of the resources and tutorials that provided valuable insights and helped shape the development of Twinder.
-- Many thanks to Cindy `@cindy-hsin` and other team members Jack and Justin who dedicated their time and expertise to bring this project to life, contributing their skills in software development, system architecture, and design.
-- Many thanks to professor Gorton `@gortonator` who provided feedback and insights throughout the development process, helping us refine and improve Twinder to meet the needs and expectations of our assignment requirement.
+- Many thanks to Cindy [@cindy-hsin](https://github.com/cindy-hsin) and other team members Jack and Justin who dedicated their time and expertise to bring this project to life, contributing their skills in software development, system architecture, and design.
+- Many thanks to professor Gorton [@gortonator](https://github.com/gortonator) who provided feedback and insights throughout the development process, helping us refine and improve Twinder to meet the needs and expectations of our assignment requirement.
 
 
 ## License
