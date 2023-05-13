@@ -6,8 +6,9 @@
 ## Table of Contents
 * [General Info](#general-information)
 * [Technologies Used](#technologies-used)
-* [Screenshots](#screenshots)
+* [System Architecture & Improvements](#System-Architecture-&-Improvements)
 * [Room for Improvement](#room-for-improvement)
+* [Summarization](#Summarization)
 * [Acknowledgements](#acknowledgements)
 * [License](#license)
 
@@ -31,22 +32,39 @@ For deployment, we have chosen the reliable infrastructure of AWS EC2, complemen
 - Stress Testing: Rigorous testing to evaluate and optimize system performance, achieving high throughput
 
 
-## Screenshots
-![Example screenshot](./img/screenshot.png)
-<!-- If you have screenshots you'd like to share, include them here. -->
+## System Architecture & Improvements
+[System Architecture](./img/screenshot.png)
 
+[Tuning Kafka Producer parameters](./img/screenshot1.png)
 
+[Tuning Kafka partitions](./img/screenshot2.png)
+
+[Tuning Kafka Consumer threads](./img/screenshot3.png)
+
+[Test within same VPC & scaled out structure](./img/screenshot4.png)
+
+[Incorporate Load Balancer](./img/screenshot5.png)
+
+[Improved Producer from Sync to Async write](./img/screenshot6.png)
 
 
 ## Room for Improvement
 
-Room for improvement:
-- Improvement to be done 1
-- Improvement to be done 2
+Room for improvement - Done:
+- Tuning Kafka Producer parameters
+- Tuning Kafka partitions
+- Tuning Kafka Consumer threads
+- Incorporate Load Balancer
+- Test within same VPC & scaled out structure
+- Improved Producer from Sync to Async write
 
-To do:
-- Feature to be added 1
-- Feature to be added 2
+Room for improvement - To do:
+- Implement a circuit breaker to monitor the connection of the Tomcat server and the consumer component
+- Implement a data backup mechanism to improve data safety and enable fast recovery in the event of server crashes
+
+
+## Summarization
+In conclusion, we have successfully optimized our system through various approaches, including adjusting Kafka producer parameters, increasing the number of Kafka partitions, modifying Kafka consumer threads, and testing both within the same and across VPCs. Additionally, we scaled out key components by adding extra servlets, Mongos instances, and dedicated EC2 instances for each member of the MongoDB sharded cluster replica set. We also incorporated a load balancer and implemented asynchronous messaging for the producer's communication with the broker. After conducting numerous experiments and tests, we are proud to report that our efforts have led to a substantial increase in throughput and significantly reduced latency compared to our initial design.
 
 
 ## Acknowledgements
